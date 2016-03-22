@@ -2,7 +2,6 @@ from social.backends.oauth import BaseOAuth2
 # from social.apps.django_app import views
 from social.utils import handle_http_errors, parse_qs
 from django.conf import settings
-
 DEFAULT_AUTH_PIPELINE = [
     'third_party_auth.pipeline.parse_query_params',
     'social.pipeline.social_auth.social_details',
@@ -29,7 +28,7 @@ class WPOAuthBackend(BaseOAuth2):
     """
     WP_PRIVIDER_URL = "http://wp.local"
     name = 'wp-oauth2'
-    # ID_KEY = 'username'
+    ID_KEY = 'ID'
     AUTHORIZATION_URL = '{}/oauth/authorize'.format(WP_PRIVIDER_URL)
     ACCESS_TOKEN_URL = '{}/oauth/token'.format(WP_PRIVIDER_URL)
     # USER_DATA_URL = '{url}/oauth2/access_token/{access_token}/'
@@ -41,6 +40,22 @@ class WPOAuthBackend(BaseOAuth2):
 
     skip_email_verification = True
 
+    def setting(self, name, default=None):
+        """Return setting value from strategy"""
+        try:
+            from third_party_auth.models import OAuth2ProviderConfig
+        except ImportError:
+            OAuth2ProviderConfig = None
+
+        if OAuth2ProviderConfig is not None:
+            provider_config = OAuth2ProviderConfig.current(self.name)
+            if not provider_config.enabled:
+                raise Exception("Can't fetch setting of a disabled backend.")
+            try:
+                return provider_config.get_setting(name)
+            except KeyError:
+                pass
+        return super(WPOAuthBackend, self).setting(name, default=default)
 
     def get_user_details(self, response):
         """ Return user details from SSO account. """
@@ -70,5 +85,3 @@ class WPOAuthBackend(BaseOAuth2):
             pipeline=self.PIPELINE, *args, **kwargs
         )
 
-    def auth_complete_credentials(self):
-        return None

@@ -113,4 +113,4 @@ def ensure_user_information(
             reactivation_email_for_user(user)
             raise AuthEntryError(backend, user.email)
 
-    return response
+    return {'user': user}
