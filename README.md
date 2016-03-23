@@ -47,3 +47,5 @@ Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
  
 **Note.** If you work on local devstack. Inside your edx’s vagrant in /etc/hosts add a row with your machines’s IP  and wordpress’s >vhost. For example:
 ```192.168.0.197 wp.local```
+
+[wp_oauth_provider]: <https://ru.wordpress.org/plugins/oauth2-provider/>
