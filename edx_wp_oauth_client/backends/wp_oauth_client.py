@@ -1,7 +1,6 @@
 from social.backends.oauth import BaseOAuth2
-# from social.apps.django_app import views
-from social.utils import handle_http_errors, parse_qs
-from django.conf import settings
+
+
 DEFAULT_AUTH_PIPELINE = [
     'third_party_auth.pipeline.parse_query_params',
     'social.pipeline.social_auth.social_details',
@@ -11,8 +10,7 @@ DEFAULT_AUTH_PIPELINE = [
     'third_party_auth.pipeline.associate_by_email_if_login_api',
     'social.pipeline.user.get_username',
     'third_party_auth.pipeline.set_pipeline_timeout',
-    'edx_wp_oauth_client.edx_wp_oauth_client.pipeline.ensure_user_information',
-    # 'third_party_auth.pipeline.ensure_user_information',
+    'edx_wp_oauth_client.pipeline.ensure_user_information',
     'social.pipeline.user.create_user',
     'social.pipeline.social_auth.associate_user',
     'social.pipeline.social_auth.load_extra_data',
