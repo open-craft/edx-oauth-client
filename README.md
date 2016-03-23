@@ -1,7 +1,7 @@
 # edx_wp_oauth_client
 SSO Client for [Wordpress OAuth plugin provider][wp_oauth_provider].
 
-Install  WP plugin following instruction. In wp-admin OAuth Server tab add new client
+Install  WP plugin following instruction. In wp-admin OAuth Server tab add new client.
 Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
 
  - Install this client
