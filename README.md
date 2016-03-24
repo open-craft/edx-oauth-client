@@ -47,24 +47,26 @@ Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
    
    And add this code in **functions.php** for your wordpress theme
    ```
-    add_action("wp_login", "set_auth_cookie");
-    function set_auth_cookie()
-    {
-        global $auth_cookie_name, $wpdb,$user;
-        $user_id =$user->ID;
-        $auth_code = 1;
-        if($auth_code) {
-            setcookie($auth_cookie_name, $auth_code, $domain="*.<YOUR_DOMAIN>");
-            setcookie($auth_cookie_name."_user", $user->nickname, $domain="*.<YOUR_DOMAIN>");
-        }
-    
-    }
-    add_action('wp_logout', 'remove_custom_cookie_admin');
-    function remove_custom_cookie_admin() {
-        global $auth_cookie_name;
-        setcookie($auth_cookie_name, "", $domain="*.<YOUR_DOMAIN>");
-        setcookie($auth_cookie_name."_user", "", $domain="*.<YOUR_DOMAIN>");
-    }
+   $auth_cookie_name = "authenticated";
+   
+   add_action("wp_login", "set_auth_cookie");
+   function set_auth_cookie()
+   {
+       global $auth_cookie_name, $user;
+       $user_id =$user->ID;
+       $auth_code = 1;
+       if($auth_code) {
+           setcookie($auth_cookie_name, $auth_code, $domain="*.<YOUR_DOMAIN>");
+           setcookie($auth_cookie_name."_user", $user->nickname, $domain="*.<YOUR_DOMAIN>");
+       }
+   
+   }
+   add_action('wp_logout', 'remove_custom_cookie_admin');
+   function remove_custom_cookie_admin() {
+       global $auth_cookie_name;
+       setcookie($auth_cookie_name, "", $domain="*.<YOUR_DOMAIN>");
+       setcookie($auth_cookie_name."_user", "", $domain="*.<YOUR_DOMAIN>");
+   }
    ```
 
  
