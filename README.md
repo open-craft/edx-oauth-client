@@ -45,28 +45,62 @@ Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
    MIDDLEWARE_CLASSES += ("edx_wp_oauth_client.middleware.SeamlessAuthorization",)
    ```
    
-   And add this code in **functions.php** for your wordpress theme
+   And add this code in the end of **functions.php** for your Wordpress theme
    ```
-   $auth_cookie_name = "authenticated";
+    $auth_cookie_name = "authenticated";
    
-   add_action("wp_login", "set_auth_cookie");
-   function set_auth_cookie()
-   {
-       global $auth_cookie_name, $user;
-       $user_id =$user->ID;
-       $auth_code = 1;
-       if($auth_code) {
-           setcookie($auth_cookie_name, $auth_code, $domain="*.<YOUR_DOMAIN>");
-           setcookie($auth_cookie_name."_user", $user->nickname, $domain="*.<YOUR_DOMAIN>");
-       }
-   
-   }
-   add_action('wp_logout', 'remove_custom_cookie_admin');
-   function remove_custom_cookie_admin() {
-       global $auth_cookie_name;
-       setcookie($auth_cookie_name, "", $domain="*.<YOUR_DOMAIN>");
-       setcookie($auth_cookie_name."_user", "", $domain="*.<YOUR_DOMAIN>");
-   }
+    add_action("wp_login", "set_auth_cookie");
+    function set_auth_cookie()
+    {
+        /**
+         * After login set multidomain coocies which gives to edx understandig that user have already registrated
+         */
+        global $auth_cookie_name, $user;
+        $auth_code = 1;
+        if ($auth_code) {
+            setcookie($auth_cookie_name, $auth_code, $domain = "*.<YOUR_DOMAIN>");
+            setcookie($auth_cookie_name . "_user", $user->nickname, $domain = "*.<YOUR_DOMAIN>");
+        }
+    
+    }
+    
+    add_action('wp_logout', 'remove_custom_cookie_admin');
+    function remove_custom_cookie_admin()
+    {
+        /**
+         * After logout delete multidomain cookies which was added above
+         */
+        global $auth_cookie_name;
+        setcookie($auth_cookie_name, "", $domain = "*.<YOUR_DOMAIN>");
+        setcookie($auth_cookie_name . "_user", "", $domain = "*.<YOUR_DOMAIN>");
+    }
+    
+    add_action('user_register', 'create_edx_user_after_registration', 10, 1);
+    
+    function create_edx_user_after_registration($user_id)
+    {
+        /**
+         * Create edX user after user creation on Wordpress. This hack allows make API requests to edX before
+         * the user visit edX first time.
+         * Also this function allows update user data by wordpress initiative
+         */
+        global $wpdb;
+        $client_url = "http://0.0.0.0:8000/auth/complete/wp-oauth2/";
+        $query = "SELECT * FROM `wp_oauth_clients` WHERE `redirect_uri` = '{$client_url}'";
+        $client = $wpdb->get_row($query);
+        if ($client) {
+            require_once ABSPATH . '/wp-content/plugins/oauth2-provider/library/OAuth2/Autoloader.php';
+            OAuth2\Autoloader::register();
+            $storage = new OAuth2\Storage\Wordpressdb();
+            $authCode = new OAuth2\OpenID\ResponseType\AuthorizationCode($storage);
+            $code = $authCode->createAuthorizationCode($client->client_id, $user_id, $client->redirect_uri);
+            $params = http_build_query(array(
+                'state' => md5(time()),
+                'code' => $code
+            ));
+            file_get_contents($client->redirect_uri . "?" . $params);
+        }
+    }
    ```
 
  

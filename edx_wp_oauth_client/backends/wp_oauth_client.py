@@ -1,5 +1,5 @@
 from social.backends.oauth import BaseOAuth2
-
+from social.utils import handle_http_errors
 
 DEFAULT_AUTH_PIPELINE = [
     'third_party_auth.pipeline.parse_query_params',
@@ -59,7 +59,7 @@ class WPOAuthBackend(BaseOAuth2):
         """ Return user details from SSO account. """
         return response
 
-    # @handle_http_errors
+    @handle_http_errors
     def do_auth(self, access_token, *args, **kwargs):
         """Finish the auth process once the access_token was retrieved"""
         data = self.user_data(access_token)
@@ -67,6 +67,15 @@ class WPOAuthBackend(BaseOAuth2):
             data['access_token'] = access_token
         kwargs.update({'response': data, 'backend': self})
         return self.strategy.authenticate(*args, **kwargs)
+
+    @handle_http_errors
+    def auth_complete(self, *args, **kwargs):
+        """Completes loging process, must return user instance"""
+        self.strategy.session_set('{}_state'.format(self.name),
+                                         self.data.get('state'))
+        next_url = '/'
+        self.strategy.session.setdefault('next', next_url)
+        return super(WPOAuthBackend, self).auth_complete(*args, **kwargs)
 
     def user_data(self, access_token, *args, **kwargs):
         """ Grab user profile information from SSO. """

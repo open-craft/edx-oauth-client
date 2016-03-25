@@ -18,7 +18,7 @@ class SeamlessAuthorization(object):
 
     def process_request(self, request):
         """
-        Check multidomain cookie and if user is authenticated on sso, login it on edx
+        Check multidomain cookie and if user is authenticated on sso, login it on edx.
         """
         backend = "wp-oauth2"
         current_url = request.get_full_path()
