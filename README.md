@@ -27,7 +27,7 @@ Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
     ```
     INSTALLED_APPS = (
         ...
-        'sso_edx_ml',
+        'edx_wp_oauth_client',
         ...
     )
     ```
