@@ -27,7 +27,7 @@ Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
     ```
     INSTALLED_APPS = (
         ...
-        'sso_edx_ml',
+        'edx_wp_oauth_client',
         ...
     )
     ```
@@ -48,18 +48,19 @@ Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
    And add this code in the end of **functions.php** for your Wordpress theme
    ```
     $auth_cookie_name = "authenticated";
-   
+    $domain_name = "<YOUR_DOMAIN>";
+    
     add_action("wp_login", "set_auth_cookie");
     function set_auth_cookie()
     {
         /**
          * After login set multidomain coocies which gives to edx understandig that user have already registrated
          */
-        global $auth_cookie_name, $user;
+        global $auth_cookie_name, $domain_name, $user;
         $auth_code = 1;
         if ($auth_code) {
-            setcookie($auth_cookie_name, $auth_code, $domain = "*.<YOUR_DOMAIN>");
-            setcookie($auth_cookie_name . "_user", $user->nickname, $domain = "*.<YOUR_DOMAIN>");
+            setcookie($auth_cookie_name, $auth_code, $domain = "*.{$domain_name}");
+            setcookie($auth_cookie_name . "_user", $user->nickname, $domain = "*.{$domain_name}");
         }
     
     }
@@ -70,9 +71,9 @@ Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
         /**
          * After logout delete multidomain cookies which was added above
          */
-        global $auth_cookie_name;
-        setcookie($auth_cookie_name, "", $domain = "*.<YOUR_DOMAIN>");
-        setcookie($auth_cookie_name . "_user", "", $domain = "*.<YOUR_DOMAIN>");
+        global $auth_cookie_name, $domain_name;
+        setcookie($auth_cookie_name, "", $domain = "*.{$domain_name}");
+        setcookie($auth_cookie_name . "_user", "", $domain = "*.{$domain_name}");
     }
     
     add_action('user_register', 'create_edx_user_after_registration', 10, 1);
@@ -84,8 +85,9 @@ Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
          * the user visit edX first time.
          * Also this function allows update user data by wordpress initiative
          */
-        global $wpdb;
-        $client_url = "http://0.0.0.0:8000/auth/complete/wp-oauth2/";
+        global $wpdb, $domain_name;
+        # fix this url with your LMS address
+        $client_url = "http://lms.{$domain_name}/auth/complete/wp-oauth2/";
         $query = "SELECT * FROM `wp_oauth_clients` WHERE `redirect_uri` = '{$client_url}'";
         $client = $wpdb->get_row($query);
         if ($client) {
