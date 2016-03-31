@@ -1,6 +1,6 @@
+from django.conf import settings
 from social.backends.oauth import BaseOAuth2
 from social.utils import handle_http_errors
-
 DEFAULT_AUTH_PIPELINE = [
     'third_party_auth.pipeline.parse_query_params',
     'social.pipeline.social_auth.social_details',
@@ -24,7 +24,7 @@ class WPOAuthBackend(BaseOAuth2):
     """
     Backend for Wordpress OAuth Server Authorization
     """
-    WP_PRIVIDER_URL = "http://wp.local"
+    WP_PRIVIDER_URL = settings.FEATURES.get('WP_PROVIDER_URL')
     name = 'wp-oauth2'
     ID_KEY = 'ID'
     AUTHORIZATION_URL = '{}/oauth/authorize'.format(WP_PRIVIDER_URL)
