@@ -74,6 +74,8 @@ Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
         global $auth_cookie_name, $domain_name;
         setcookie($auth_cookie_name, "", $domain = "*.{$domain_name}");
         setcookie($auth_cookie_name . "_user", "", $domain = "*.{$domain_name}");
+        # delete edx user's sessionid on logout
+        setcookie("sessionid", "", $domain = "*.{$domain_name}");        
     }
     
     add_action('user_register', 'create_edx_user_after_registration', 10, 1);
