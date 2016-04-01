@@ -50,19 +50,15 @@ Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
     $auth_cookie_name = "authenticated";
     $domain_name = "<YOUR_DOMAIN>";
     
-    add_action("wp_login", "set_auth_cookie");
-    function set_auth_cookie()
+    add_action('wp_login', 'set_auth_cookie', 1, 2);
+    function set_auth_cookie($user_login, $user)
     {
         /**
-         * After login set multidomain coocies which gives to edx understandig that user have already registrated
+         * After login set multidomain cookies which gives to edx understanding that user have already registrated
          */
-        global $auth_cookie_name, $domain_name, $user;
-        $auth_code = 1;
-        if ($auth_code) {
-            setcookie($auth_cookie_name, $auth_code, $domain = "*.{$domain_name}");
-            setcookie($auth_cookie_name . "_user", $user->nickname, $domain = "*.{$domain_name}");
-        }
-    
+        global $auth_cookie_name, $domain_name;
+        setcookie($auth_cookie_name, 1, time() + 60 * 60 * 24 * 30, $domain = "*.{$domain_name}");
+        setcookie($auth_cookie_name . "_user", $user->nickname, time() + 60 * 60 * 24 * 30, $domain = "*.{$domain_name}");
     }
     
     add_action('wp_logout', 'remove_custom_cookie_admin');
@@ -72,10 +68,10 @@ Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
          * After logout delete multidomain cookies which was added above
          */
         global $auth_cookie_name, $domain_name;
-        setcookie($auth_cookie_name, "", $domain = "*.{$domain_name}");
-        setcookie($auth_cookie_name . "_user", "", $domain = "*.{$domain_name}");
+        setcookie($auth_cookie_name, "", time() - 3600, $domain = "*.{$domain_name}");
+        setcookie($auth_cookie_name . "_user", "", time() - 3600, $domain = "*.{$domain_name}");
         # delete edx user's sessionid on logout
-        setcookie("sessionid", "", $domain = "*.{$domain_name}");        
+        setcookie("sessionid", "", $domain = "*.{$domain_name}");
     }
     
     add_action('user_register', 'create_edx_user_after_registration', 10, 1);
@@ -89,7 +85,7 @@ Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
          */
         global $wpdb, $domain_name;
         # fix this url with your LMS address
-        $client_url = "http://lms.{$domain_name}/auth/complete/wp-oauth2/";
+        $client_url = "http://courses.{$domain_name}/auth/complete/wp-oauth2/";
         $query = "SELECT * FROM `wp_oauth_clients` WHERE `redirect_uri` = '{$client_url}'";
         $client = $wpdb->get_row($query);
         if ($client) {
