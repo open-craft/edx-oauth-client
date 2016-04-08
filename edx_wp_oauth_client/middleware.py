@@ -1,8 +1,10 @@
 import re
+import os.path
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib.auth import REDIRECT_FIELD_NAME, logout
+from django.shortcuts import redirect
 
 from social.apps.django_app.views import auth, NAMESPACE
 
@@ -55,3 +57,71 @@ class SeamlessAuthorization(object):
             logout(request)
 
         return None
+
+
+class WPRedirection(object):
+    def process_request(self, request):
+        """
+        Redirect to PLP for pages that have duplicated functionality on PLP
+        """
+        WP_PROVIDER_URL = settings.FEATURES.get("WP_PROVIDER_URL","")
+        current_url = request.get_full_path()
+        if current_url:
+            start_url = current_url.split('?')[0].split('/')[1]
+        else:
+            start_url = ''
+
+        auth_process_urls = ('oauth2', 'auth', 'login_oauth_token', 'social-logout')
+        api_urls = (
+            'certificates', 'api', 'user_api', 'notifier_api', 'update_example_certificate', 'update_certificate',
+            'request_certificate',)
+
+        handle_local_urls = (
+            'i18n', 'search', 'verify_student', 'certificates', 'jsi18n', 'course_modes', '404', '500', 'i18n.js',
+            'wiki', 'notify', 'courses', 'xblock', 'change_setting', 'account', 'notification_prefs', 'admin',
+            'survey', 'event', 'instructor_task_status', 'edinsights_service', 'openassessment', 'instructor_report',
+        )
+
+        handle_local_urls += auth_process_urls + api_urls
+        is_auth = request.user.is_authenticated()
+
+        if settings.DEBUG:
+            debug_handle_local_urls = ('debug', settings.STATIC_URL, settings.MEDIA_URL)
+            handle_local_urls += debug_handle_local_urls
+
+        if request.path == "/dashboard/" or request.path == "/dashboard":
+            if is_auth:
+                return redirect(os.path.join(WP_PROVIDER_URL, 'members', request.user.username))
+            else:
+                return redirect(WP_PROVIDER_URL)
+
+        r_url = re.compile(r'^/courses/(.*)/about').match(current_url)
+        if r_url:
+            return redirect(
+                os.path.join(os.path.join(WP_PROVIDER_URL))
+            )
+
+        is_courses_list_or_about_page = False
+        r = re.compile(r'^/courses/%s/about' % settings.COURSE_ID_PATTERN)
+
+        if r.match(current_url):
+            is_courses_list_or_about_page = True
+
+        if request.path == "/courses/" or request.path == "/courses":
+            return redirect(os.path.join(WP_PROVIDER_URL, 'courses'))
+
+        if request.path.startswith(
+                '/u/') or request.path == "/account/settings/" or request.path == "/account/settings":
+            if is_auth:
+                return redirect(os.path.join(WP_PROVIDER_URL, 'members', request.user.username, 'profile'))
+            else:
+                return redirect(WP_PROVIDER_URL)
+
+        if start_url not in handle_local_urls or is_courses_list_or_about_page:
+            if start_url.split('?')[0] not in handle_local_urls:
+                wp_url = WP_PROVIDER_URL.rstrip("/") + "/"
+                return redirect("%s%s" % (wp_url, current_url))
+
+        if not is_auth and start_url not in auth_process_urls and \
+                        start_url not in api_urls:
+            request.session['force_auth'] = True
