@@ -2,6 +2,7 @@ import string  # pylint: disable-msg=deprecated-module
 import json
 import logging
 
+from cms.djangoapps.course_creators.models import CourseCreator
 from django.http import HttpResponseBadRequest, HttpResponse
 from django.contrib.auth.models import User
 
@@ -71,7 +72,10 @@ def ensure_user_information(
             user.last_name = data['last_name']
             user.is_active = True
             user.save()
-
+            CourseCreator.objects.get_or_create(
+                user=user,
+                state=CourseCreator.UNREQUESTED
+            )
         return {'user': user}
 
     if not user:
@@ -93,7 +97,10 @@ def ensure_user_information(
             user.first_name = data['first_name']
             user.last_name = data['last_name']
             user.save()
-
+            CourseCreator.objects.get_or_create(
+                user=user,
+                state=CourseCreator.UNREQUESTED
+            )
         try:
             user_profile = UserProfile.objects.get(user=user)
         except User.DoesNotExist:
