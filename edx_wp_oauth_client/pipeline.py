@@ -72,10 +72,7 @@ def ensure_user_information(
             user.last_name = data['last_name']
             user.is_active = True
             user.save()
-            CourseCreator.objects.get_or_create(
-                user=user,
-                state=CourseCreator.UNREQUESTED
-            )
+            CourseCreator.objects.get_or_create(user=user)
         return {'user': user}
 
     if not user:
@@ -97,10 +94,8 @@ def ensure_user_information(
             user.first_name = data['first_name']
             user.last_name = data['last_name']
             user.save()
-            CourseCreator.objects.get_or_create(
-                user=user,
-                state=CourseCreator.UNREQUESTED
-            )
+            CourseCreator.objects.get_or_create(user=user)
+
         try:
             user_profile = UserProfile.objects.get(user=user)
         except User.DoesNotExist:
