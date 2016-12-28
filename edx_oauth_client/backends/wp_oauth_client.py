@@ -10,7 +10,7 @@ DEFAULT_AUTH_PIPELINE = [
     'third_party_auth.pipeline.associate_by_email_if_login_api',
     'social.pipeline.user.get_username',
     'third_party_auth.pipeline.set_pipeline_timeout',
-    'edx_wp_oauth_client.pipeline.ensure_user_information',
+    'edx_oauth_client.pipeline.ensure_user_information',
     'social.pipeline.user.create_user',
     'social.pipeline.social_auth.associate_user',
     'social.pipeline.social_auth.load_extra_data',

@@ -6,7 +6,7 @@ Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
 
  - Install this client
    ```
-   pip install -e git+https://github.com/xahgmah/edx-wp-oauth-client.git#egg=edx_wp_oauth_client
+   pip install -e git+https://github.com/xahgmah/edx-oauth-client.git#egg=edx_wp_oauth_client
    ```
 
  - Enable THIRD_PARTY_AUTH in edX
@@ -20,14 +20,14 @@ Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
         "ENABLE_THIRD_PARTY_AUTH": true
     }
     ...
-    "THIRD_PARTY_AUTH_BACKENDS":["edx_wp_oauth_client.backends.wp_oauth_client.WPOAuthBackend"]
+    "THIRD_PARTY_AUTH_BACKENDS":["edx_oauth_client.backends.wp_oauth_client.WPOAuthBackend"]
     ```
    
  - Add in file **lms/envs/common.py**. It's preffered to place it somewhere at the top of the list
     ```
     INSTALLED_APPS = (
         ...
-        'edx_wp_oauth_client',
+        'edx_oauth_client',
         ...
     )
     ```
@@ -42,7 +42,7 @@ Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
     
  - If you're want seamless authorization add middleware classes for SeamlessAuthorization (crossdomain cookie support needed)
    ```
-   MIDDLEWARE_CLASSES += ("edx_wp_oauth_client.middleware.SeamlessAuthorization",)
+   MIDDLEWARE_CLASSES += ("edx_oauth_client.middleware.SeamlessAuthorization",)
    ```
    
    And add this code in the end of **functions.php** for your Wordpress theme
