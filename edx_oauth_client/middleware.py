@@ -22,7 +22,7 @@ class SeamlessAuthorization(object):
         """
         Check multidomain cookie and if user is authenticated on sso, login it on edx.
         """
-        backend = "wp-oauth2"
+        backend = "drupal-oauth2"
         current_url = request.get_full_path()
 
         # don't work for admin
@@ -59,12 +59,12 @@ class SeamlessAuthorization(object):
         return None
 
 
-class WPRedirection(object):
+class DrupalRedirection(object):
     def process_request(self, request):
         """
         Redirect to PLP for pages that have duplicated functionality on PLP
         """
-        WP_PROVIDER_URL = settings.FEATURES.get("WP_PROVIDER_URL","")
+        DRUPAL_PROVIDER_URL = settings.FEATURES.get("DRUPAL_PROVIDER_URL","")
         current_url = request.get_full_path()
         if current_url:
             start_url = current_url.split('?')[0].split('/')[1]
@@ -92,14 +92,14 @@ class WPRedirection(object):
 
         if request.path == "/dashboard/" or request.path == "/dashboard":
             if is_auth:
-                return redirect(os.path.join(WP_PROVIDER_URL, 'members', request.user.username))
+                return redirect(os.path.join(DRUPAL_PROVIDER_URL, 'members', request.user.username))
             else:
-                return redirect(WP_PROVIDER_URL)
+                return redirect(DRUPAL_PROVIDER_URL)
 
         r_url = re.compile(r'^/courses/(.*)/about').match(current_url)
         if r_url:
             return redirect(
-                os.path.join(os.path.join(WP_PROVIDER_URL))
+                os.path.join(os.path.join(DRUPAL_PROVIDER_URL))
             )
 
         is_courses_list_or_about_page = False
@@ -109,19 +109,19 @@ class WPRedirection(object):
             is_courses_list_or_about_page = True
 
         if request.path == "/courses/" or request.path == "/courses":
-            return redirect(os.path.join(WP_PROVIDER_URL, 'courses'))
+            return redirect(os.path.join(DRUPAL_PROVIDER_URL, 'courses'))
 
         if request.path.startswith(
                 '/u/') or request.path == "/account/settings/" or request.path == "/account/settings":
             if is_auth:
-                return redirect(os.path.join(WP_PROVIDER_URL, 'members', request.user.username, 'profile'))
+                return redirect(os.path.join(DRUPAL_PROVIDER_URL, 'members', request.user.username, 'profile'))
             else:
-                return redirect(WP_PROVIDER_URL)
+                return redirect(DRUPAL_PROVIDER_URL)
 
         if start_url not in handle_local_urls or is_courses_list_or_about_page:
             if start_url.split('?')[0] not in handle_local_urls:
-                wp_url = WP_PROVIDER_URL.rstrip("/") + "/"
-                return redirect("%s%s" % (wp_url, current_url))
+                drupal_url = DRUPAL_PROVIDER_URL.rstrip("/") + "/"
+                return redirect("%s%s" % (drupal_url, current_url))
 
         if not is_auth and start_url not in auth_process_urls and \
                         start_url not in api_urls:
