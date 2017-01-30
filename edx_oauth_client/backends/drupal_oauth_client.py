@@ -23,7 +23,7 @@ DEFAULT_AUTH_PIPELINE = [
 
 class DrupalOAuthBackend(BaseOAuth2):
     """
-    Backend for Wordpress OAuth Server Authorization
+    Backend for Drupal OAuth Server Authorization
     """
     DRUPAL_PRIVIDER_URL = settings.FEATURES.get('DRUPAL_PRIVIDER_URL')
     name = 'drupal-oauth2'
