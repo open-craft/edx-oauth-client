@@ -28,8 +28,8 @@ class DrupalOAuthBackend(BaseOAuth2):
     DRUPAL_PRIVIDER_URL = settings.FEATURES.get('DRUPAL_PRIVIDER_URL')
     name = 'drupal-oauth2'
     ID_KEY = 'ID'
-    AUTHORIZATION_URL = '{}/oauth/authorize'.format(DRUPAL_PRIVIDER_URL)
-    ACCESS_TOKEN_URL = '{}/oauth/token'.format(DRUPAL_PRIVIDER_URL)
+    AUTHORIZATION_URL = '{}/oauth2/authorize'.format(DRUPAL_PRIVIDER_URL)
+    ACCESS_TOKEN_URL = '{}/oauth2/token'.format(DRUPAL_PRIVIDER_URL)
     # USER_DATA_URL = '{url}/oauth2/access_token/{access_token}/'
     DEFAULT_SCOPE = []
     REDIRECT_STATE = False
@@ -83,7 +83,7 @@ class DrupalOAuthBackend(BaseOAuth2):
     def user_data(self, access_token, *args, **kwargs):
         """ Grab user profile information from SSO. """
         data = self.get_json(
-            '{}/oauth/me'.format(self.DRUPAL_PRIVIDER_URL),
+            '{}/oauth2/me'.format(self.DRUPAL_PRIVIDER_URL),
             params={'access_token': access_token},
         )
 
