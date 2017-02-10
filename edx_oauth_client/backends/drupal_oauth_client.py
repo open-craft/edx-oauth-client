@@ -31,7 +31,7 @@ class DrupalOAuthBackend(BaseOAuth2):
     AUTHORIZATION_URL = '{}/oauth2/authorize'.format(DRUPAL_PRIVIDER_URL)
     ACCESS_TOKEN_URL = '{}/oauth2/token'.format(DRUPAL_PRIVIDER_URL)
     # USER_DATA_URL = '{url}/oauth2/access_token/{access_token}/'
-    DEFAULT_SCOPE = []
+    DEFAULT_SCOPE = ['api']
     REDIRECT_STATE = False
     ACCESS_TOKEN_METHOD = 'POST'
 
