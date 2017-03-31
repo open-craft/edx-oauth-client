@@ -83,7 +83,7 @@ class DrupalOAuthBackend(BaseOAuth2):
     def user_data(self, access_token, *args, **kwargs):
         """ Grab user profile information from SSO. """
         data = self.get_json(
-            '{}/oauth2/current-user'.format(self.DRUPAL_PRIVIDER_URL),
+            '{}/api/current-user/'.format(self.DRUPAL_PRIVIDER_URL),
             params={'access_token': access_token},
         )
 
