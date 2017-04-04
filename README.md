@@ -17,7 +17,8 @@ Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
     "FEATURES" : {
         ...
         "ENABLE_COMBINED_LOGIN_REGISTRATION": true,
-        "ENABLE_THIRD_PARTY_AUTH": true
+        "ENABLE_THIRD_PARTY_AUTH": true,
+        "DRUPAL_PRIVIDER_URL": "http://drupalsite.domain"
     }
     ...
     "THIRD_PARTY_AUTH_BACKENDS":["edx_oauth_client.backends.drupal_oauth_client.DrupalOAuthBackend"]

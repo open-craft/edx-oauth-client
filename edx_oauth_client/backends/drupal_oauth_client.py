@@ -27,7 +27,7 @@ class DrupalOAuthBackend(BaseOAuth2):
     """
     DRUPAL_PRIVIDER_URL = settings.FEATURES.get('DRUPAL_PRIVIDER_URL')
     name = 'drupal-oauth2'
-    ID_KEY = 'ID'
+    ID_KEY = 'uid'
     AUTHORIZATION_URL = '{}/oauth2/authorize'.format(DRUPAL_PRIVIDER_URL)
     ACCESS_TOKEN_URL = '{}/oauth2/token'.format(DRUPAL_PRIVIDER_URL)
     # USER_DATA_URL = '{url}/oauth2/access_token/{access_token}/'
@@ -86,7 +86,7 @@ class DrupalOAuthBackend(BaseOAuth2):
             '{}/api/current-user/'.format(self.DRUPAL_PRIVIDER_URL),
             params={'access_token': access_token},
         )
-
+        data['access_token'] = access_token
         return data
 
     def pipeline(self, pipeline, pipeline_index=0, *args, **kwargs):
@@ -94,3 +94,8 @@ class DrupalOAuthBackend(BaseOAuth2):
         return super(DrupalOAuthBackend, self).pipeline(
             pipeline=self.PIPELINE, *args, **kwargs
         )
+
+    def get_user_id(self, details, response):
+        """Return a unique ID for the current user, by default from server
+        response."""
+        return response['data'][0].get(self.ID_KEY)

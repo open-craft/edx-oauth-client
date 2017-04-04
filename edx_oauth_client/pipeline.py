@@ -19,8 +19,8 @@ from third_party_auth.pipeline import (
     make_random_password, AuthEntryError
 )
 
-
 from opaque_keys.edx.keys import CourseKey
+
 # The following are various possible values for the AUTH_ENTRY_KEY.
 AUTH_ENTRY_LOGIN = 'login'
 AUTH_ENTRY_REGISTER = 'register'
@@ -33,22 +33,29 @@ AUTH_ENTRY_REGISTER_2 = 'account_register'
 AUTH_ENTRY_LOGIN_API = 'login_api'
 AUTH_ENTRY_REGISTER_API = 'register_api'
 
+
 @partial.partial
 def ensure_user_information(
-    strategy, auth_entry, backend=None, user=None, social=None,
-    allow_inactive_user=False, *args, **kwargs):
+        strategy, auth_entry, backend=None, user=None, social=None,
+        allow_inactive_user=False, *args, **kwargs):
     """
     Ensure that we have the necessary information about a user (either an
     existing account or registration data) to proceed with the pipeline.
     """
 
     response = {}
-    data = kwargs['response']
-    display_name = data.get('display_name').split(" ")
-    data['first_name'] = display_name[0]
-    data['last_name'] = display_name[1] if len(display_name) >= 2 else ''
-    data['name'] = data.get('display_name')
-    data['username'] = data['user_login']
+    data = {}
+    try:
+        user_data = kwargs['response']['data'][0]
+        data['username'] = user_data['username']
+        data['first_name'] = user_data['firstName']
+        data['last_name'] = user_data['lastName']
+        data['email'] = user_data['email']
+        data['country'] = user_data['country']
+        data['access_token'] = kwargs['response']['access_token']
+        data['name'] = data['first_name'] + " " + data['last_name']
+    except IndexError, KeyError:
+        raise AuthEntryError(backend, 'can\' get user data.')
 
     def dispatch_to_register():
         """Force user creation on login or register"""
