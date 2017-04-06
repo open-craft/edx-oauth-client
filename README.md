@@ -50,7 +50,10 @@ Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
 
    Create multi-domain cookies named “authenticated”=1 and “authenticated_user”=”<username>” if user is logged in. And delete these cookies on logout
    
-   Also you should initiate user creation on edX after user creation on Drupal. You need to send GET request to Edx API on url https://<edx-url>/auth/complete/drupal-oauth2/?state=<state>&code=<code>
+   Also you should initiate user creation on edX after user creation on Drupal. You need to send GET request to Edx API on url:
+   ```
+   https://<edx-url>/auth/complete/drupal-oauth2/?state=<state>&code=<code>
+   ```
    
    Where `state` is md5(time()) and `code` is code for authorization (create it if doesn't exist)
  
