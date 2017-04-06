@@ -1,2 +1,0 @@
-python-social-auth==0.2.11
-
