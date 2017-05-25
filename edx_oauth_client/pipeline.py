@@ -51,7 +51,7 @@ def ensure_user_information(
         data['first_name'] = user_data['firstName']
         data['last_name'] = user_data['lastName']
         data['email'] = user_data['email']
-        data['country'] = user_data['country']
+        data['country'] = user_data.get('country')
         data['access_token'] = kwargs['response']['access_token']
         data['name'] = data['first_name'] + " " + data['last_name']
     except IndexError, KeyError:
