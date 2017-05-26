@@ -1,12 +1,14 @@
 import string  # pylint: disable-msg=deprecated-module
 import json
 import logging
+import requests
 
 from cms.djangoapps.course_creators.models import CourseCreator
 from django.http import HttpResponseBadRequest, HttpResponse
 from django.contrib.auth.models import User
 
 from social.pipeline import partial
+from django_countries import countries
 
 from student.views import create_account_with_params, reactivation_email_for_user
 from student.models import UserProfile, CourseAccessRole
@@ -47,12 +49,22 @@ def ensure_user_information(
     data = {}
     try:
         user_data = kwargs['response']['data'][0]
+        access_token = kwargs['response']['access_token']
+
+        country = user_data.get('country')
+        if not country:
+            api = user_data['self'].replace('current-', '')
+            headers = {'Authorization': 'Bearer {}'.format(access_token)}
+            resp = requests.get(api, headers=headers)
+            country = resp.json()['data'][0]['country']
+            country = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
+
         data['username'] = user_data['username']
         data['first_name'] = user_data['firstName']
         data['last_name'] = user_data['lastName']
         data['email'] = user_data['email']
-        data['country'] = user_data.get('country')
-        data['access_token'] = kwargs['response']['access_token']
+        data['country'] = country
+        data['access_token'] = access_token
         data['name'] = data['first_name'] + " " + data['last_name']
     except IndexError, KeyError:
         raise AuthEntryError(backend, 'can\' get user data.')
