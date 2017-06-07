@@ -22,6 +22,9 @@ from third_party_auth.pipeline import (
 )
 
 from opaque_keys.edx.keys import CourseKey
+from logging import getLogger
+
+log = getLogger(__name__)
 
 # The following are various possible values for the AUTH_ENTRY_KEY.
 AUTH_ENTRY_LOGIN = 'login'
@@ -49,14 +52,17 @@ def ensure_user_information(
     data = {}
     try:
         user_data = kwargs['response']['data'][0]
+        log.info('Get user data: %s', str(user_data))
         access_token = kwargs['response']['access_token']
 
         country = user_data.get('country')
         if not country:
+            log.info('No country in response.')
             api = user_data['self'].replace('current-', '')
             headers = {'Authorization': 'Bearer {}'.format(access_token)}
             resp = requests.get(api, headers=headers)
             country = resp.json()['data'][0]['country']
+            log.info('Get country from API: %s', country)
             country = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
 
         data['username'] = user_data['username']
@@ -66,7 +72,8 @@ def ensure_user_information(
         data['country'] = country
         data['access_token'] = access_token
         data['name'] = data['first_name'] + " " + data['last_name']
-    except IndexError, KeyError:
+    except Exception as e:
+        log.error('Exception %s', e)
         raise AuthEntryError(backend, 'can\' get user data.')
 
     def dispatch_to_register():
