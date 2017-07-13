@@ -42,14 +42,15 @@ class DrupalOAuthBackend(BaseOAuth2):
     def setting(self, name, default=None):
         """Return setting value from strategy"""
         try:
-            from third_party_auth.models import OAuth2ProviderConfig
+            import third_party_auth
         except ImportError:
             OAuth2ProviderConfig = None
 
-        if OAuth2ProviderConfig is not None:
-            provider_config = OAuth2ProviderConfig.current(self.name)
-            if not provider_config.enabled:
+        if third_party_auth.models.OAuth2ProviderConfig is not None:
+            providers = [p for p in third_party_auth.provider.Registry.displayed_for_login() if p.backend_name == self.name]
+            if not providers:
                 raise Exception("Can't fetch setting of a disabled backend.")
+            provider_config = providers[0]
             try:
                 return provider_config.get_setting(name)
             except KeyError:
