@@ -61,9 +61,11 @@ def ensure_user_information(
             api = user_data['self'].replace('current-', '')
             headers = {'Authorization': 'Bearer {}'.format(access_token)}
             resp = requests.get(api, headers=headers)
-            country = resp.json()['data'][0]['country']
-            log.info('Get country from API: %s', country)
-            country = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
+            json_resp = resp.json()
+            if 'data' in json_resp:
+                country = json_resp['data'][0]['country']
+                log.info('Get country from API: %s', country)
+                country = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
 
         data['username'] = user_data['username']
         data['first_name'] = user_data['firstName']
