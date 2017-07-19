@@ -27,11 +27,11 @@ class DrupalOAuthBackend(BaseOAuth2):
     """
     DRUPAL_PRIVIDER_URL = settings.FEATURES.get('DRUPAL_PRIVIDER_URL')
     name = 'drupal-oauth2'
-    ID_KEY = 'uid'
+    ID_KEY = settings.FEATURES.get('DRUPAL_ID_KEY', 'uid')
     AUTHORIZATION_URL = '{}/oauth2/authorize'.format(DRUPAL_PRIVIDER_URL)
     ACCESS_TOKEN_URL = '{}/oauth2/token'.format(DRUPAL_PRIVIDER_URL)
     # USER_DATA_URL = '{url}/oauth2/access_token/{access_token}/'
-    DEFAULT_SCOPE = ['api']
+    DEFAULT_SCOPE = settings.FEATURES.get('DRUPAL_SCOPE', ['api'])
     REDIRECT_STATE = False
     ACCESS_TOKEN_METHOD = 'POST'
 
@@ -84,7 +84,7 @@ class DrupalOAuthBackend(BaseOAuth2):
     def user_data(self, access_token, *args, **kwargs):
         """ Grab user profile information from SSO. """
         data = self.get_json(
-            '{}/api/current-user/'.format(self.DRUPAL_PRIVIDER_URL),
+            '{}{}'.format(self.DRUPAL_PRIVIDER_URL, settings.FEATURES.get('DRUPAL_USER_DATA_URL', '/api/current-user/')),
             params={'access_token': access_token},
         )
         data['access_token'] = access_token
@@ -99,4 +99,7 @@ class DrupalOAuthBackend(BaseOAuth2):
     def get_user_id(self, details, response):
         """Return a unique ID for the current user, by default from server
         response."""
-        return response['data'][0].get(self.ID_KEY)
+        if 'data' in response:
+            return response['data'][0].get(self.ID_KEY)
+        else:
+            return response.get(self.ID_KEY)
