@@ -59,7 +59,7 @@ def ensure_user_information(
         access_token = kwargs['response']['access_token']
 
         country = user_data.get('country')
-        if not country:
+        if not country and 'self' in user_data:
             log.info('No country in response.')
             api = user_data['self'].replace('current-', '')
             headers = {'Authorization': 'Bearer {}'.format(access_token)}
