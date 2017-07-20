@@ -51,7 +51,10 @@ def ensure_user_information(
     response = {}
     data = {}
     try:
-        user_data = kwargs['response']['data'][0]
+        if 'data' in kwargs['response']:
+            user_data = kwargs['response']['data'][0]
+        else:
+            user_data = kwargs['response']
         log.info('Get user data: %s', str(user_data))
         access_token = kwargs['response']['access_token']
 
@@ -67,13 +70,16 @@ def ensure_user_information(
                 log.info('Get country from API: %s', country)
                 country = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
 
-        data['username'] = user_data['username']
-        data['first_name'] = user_data['firstName']
-        data['last_name'] = user_data['lastName']
+        data['username'] = user_data.get('username', user_data.get('name'))
+        data['first_name'] = user_data.get('firstName')
+        data['last_name'] = user_data.get('lastName')
         data['email'] = user_data['email']
         data['country'] = country
         data['access_token'] = access_token
-        data['name'] = data['first_name'] + " " + data['last_name']
+        if data['first_name'] or data['last_name']:
+            data['name'] = data['first_name'] + " " + data['last_name']
+        else:
+            data['name'] = user_data.get('preferred_username')
     except Exception as e:
         log.error('Exception %s', e)
         raise AuthEntryError(backend, 'can\' get user data.')
