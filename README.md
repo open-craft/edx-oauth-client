@@ -2,7 +2,7 @@
 SSO Client for Drupal.
 ### Instalation guide
  - Setup your Drupal site as OAuth2 server. Add client for OpenEdx
-Redirect uri must be **http://<edx_url>/auth/complete/wp-oauth2/**
+Redirect uri must be **http://<edx_url>/auth/complete/drupal-oauth2/**
 
  - Install this client
    ```
