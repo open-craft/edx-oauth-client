@@ -6,6 +6,7 @@ import requests
 from cms.djangoapps.course_creators.models import CourseCreator
 from django.http import HttpResponseBadRequest, HttpResponse
 from django.contrib.auth.models import User
+from django.conf import settings
 
 from social.pipeline import partial
 from django_countries import countries
@@ -48,8 +49,14 @@ def ensure_user_information(
     existing account or registration data) to proceed with the pipeline.
     """
 
+    token_url = '{}/api/v1/user/token.json'.format(settings.FEATURES['DRUPAL_PRIVIDER_URL'])
+    auth_url = '{}/api/v1/user/login.json'.format(settings.FEATURES['DRUPAL_PRIVIDER_URL'])
+    user_info_url = '{}/api/v1/user/{{}}.json'.format(settings.FEATURES['DRUPAL_PRIVIDER_URL'])
     response = {}
     data = {}
+    session = requests.session()
+    session.headers['Content-type'] = 'application/json'
+
     try:
         if 'data' in kwargs['response']:
             user_data = kwargs['response']['data'][0]
@@ -69,6 +76,23 @@ def ensure_user_information(
                 country = json_resp['data'][0]['country']
                 log.info('Get country from API: %s', country)
                 country = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
+
+        r = session.post(token_url)
+        if r.ok:
+            csrf_token = r.json().get('token')
+
+        if csrf_token:
+            session.headers['X-CSRF-Token'] = csrf_token
+            r = session.post(auth_url, data=json.dumps({
+                'username': settings.FEATURES['DRUPAL_API_USER'],
+                'password': settings.FEATURES['DRUPAL_API_PASSWORD']
+            }))
+
+            if r.ok:
+                r = session.get(user_info_url.format(user_data.get(settings.FEATURES['DRUPAL_ID_KEY'])))
+                gender = r.ok and r.json().get('field_gender', {}).get('und', [''])[0].get('value')
+                log.info('Get gender %s for user %s', gender, user_data['email'])
+                gender = gender and gender[0].lower() or 'o'
 
         data['username'] = user_data.get('username', user_data.get('name'))
         data['first_name'] = user_data.get('firstName')
@@ -130,18 +154,20 @@ def ensure_user_information(
             user.save()
             CourseCreator.objects.get_or_create(user=user)
 
-        try:
-            user_profile = UserProfile.objects.get(user=user)
-        except User.DoesNotExist:
-            user_profile = None
-        except User.MultipleObjectsReturned:
-            user_profile = UserProfile.objects.filter(user=user)[0]
-
-        if user_profile:
-            user_profile.name = user.get_full_name()
-            user_profile.save()
-
     user = user or response.get('user')
+
+    try:
+        user_profile = UserProfile.objects.get(user=user)
+    except User.DoesNotExist:
+        user_profile = UserProfile.objects.create(user=user)
+    except User.MultipleObjectsReturned:
+        user_profile = UserProfile.objects.filter(user=user)[0]
+
+    if user_profile:
+        user_profile.name = user.get_full_name()
+        user_profile.gender = gender
+        user_profile.save()
+
     if user and not user.is_active:
         if allow_inactive_user:
             pass
