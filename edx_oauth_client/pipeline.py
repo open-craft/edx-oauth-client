@@ -77,11 +77,14 @@ def ensure_user_information(
                 log.info('Get country from API: %s', country)
                 country = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
 
+        gender = 'o'
         r = session.post(token_url)
         if r.ok:
+            log.info('Get the API token')
             csrf_token = r.json().get('token')
 
         if csrf_token:
+            log.info('Post API auth data')
             session.headers['X-CSRF-Token'] = csrf_token
             r = session.post(auth_url, data=json.dumps({
                 'username': settings.FEATURES['DRUPAL_API_USER'],
