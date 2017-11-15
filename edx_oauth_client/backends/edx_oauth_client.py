@@ -21,19 +21,18 @@ DEFAULT_AUTH_PIPELINE = [
 ]
 
 
-class DrupalOAuthBackend(BaseOAuth2):
+class EdxOAuthBackend(BaseOAuth2):
     """
-    Backend for Drupal OAuth Server Authorization
+    Backend for Edx OAuth Server Authorization
     """
-    DRUPAL_PRIVIDER_URL = settings.FEATURES.get('DRUPAL_PRIVIDER_URL')
-    name = 'drupal-oauth2'
-    ID_KEY = settings.FEATURES.get('DRUPAL_ID_KEY', 'uid')
-    AUTHORIZATION_URL = '{}/oauth2/authorize'.format(DRUPAL_PRIVIDER_URL)
-    ACCESS_TOKEN_URL = '{}/oauth2/token'.format(DRUPAL_PRIVIDER_URL)
-    # USER_DATA_URL = '{url}/oauth2/access_token/{access_token}/'
-    DEFAULT_SCOPE = settings.FEATURES.get('DRUPAL_SCOPE', ['api'])
+    OAUTH_PROVIDER_URL = settings.FEATURES.get('OAUTH_PROVIDER_URL')
+    name = 'edx-oauth2'
+    ID_KEY = settings.FEATURES.get('OAUTH_ID_KEY', 'uid')
+    AUTHORIZATION_URL = '{}/oauth2/authorize'.format(OAUTH_PROVIDER_URL)
+    ACCESS_TOKEN_URL = '{}/oauth2/token'.format(OAUTH_PROVIDER_URL)
+    DEFAULT_SCOPE = settings.FEATURES.get('OAUTH_SCOPE', [])
     REDIRECT_STATE = False
-    ACCESS_TOKEN_METHOD = 'POST'
+    ACCESS_TOKEN_METHOD =  settings.FEATURES.get('OAUTH_ACCESS_TOKEN_METHOD', 'POST')
 
     PIPELINE = DEFAULT_AUTH_PIPELINE
 
@@ -55,7 +54,7 @@ class DrupalOAuthBackend(BaseOAuth2):
                 return provider_config.get_setting(name)
             except KeyError:
                 pass
-        return super(DrupalOAuthBackend, self).setting(name, default=default)
+        return super(EdxOAuthBackend, self).setting(name, default=default)
 
     def get_user_details(self, response):
         """ Return user details from SSO account. """
@@ -79,12 +78,12 @@ class DrupalOAuthBackend(BaseOAuth2):
         )
         next_url = '/'
         self.strategy.session.setdefault('next', next_url)
-        return super(DrupalOAuthBackend, self).auth_complete(*args, **kwargs)
+        return super(EdxOAuthBackend, self).auth_complete(*args, **kwargs)
 
     def user_data(self, access_token, *args, **kwargs):
         """ Grab user profile information from SSO. """
         data = self.get_json(
-            '{}{}'.format(self.DRUPAL_PRIVIDER_URL, settings.FEATURES.get('DRUPAL_USER_DATA_URL', '/api/current-user/')),
+            '{}{}'.format(self.OAUTH_PROVIDER_URL, settings.FEATURES.get('OAUTH_USER_DATA_URL', '/api/current-user/')),
             params={'access_token': access_token},
         )
         data['access_token'] = access_token
@@ -92,7 +91,7 @@ class DrupalOAuthBackend(BaseOAuth2):
 
     def pipeline(self, pipeline, pipeline_index=0, *args, **kwargs):
         self.strategy.session.setdefault('auth_entry', 'register')
-        return super(DrupalOAuthBackend, self).pipeline(
+        return super(EdxOAuthBackend, self).pipeline(
             pipeline=self.PIPELINE, *args, **kwargs
         )
 

@@ -1,28 +1,16 @@
-import string  # pylint: disable-msg=deprecated-module
-import json
-import logging
-import requests
-
 from cms.djangoapps.course_creators.models import CourseCreator
 from django.http import HttpResponseBadRequest, HttpResponse
 from django.contrib.auth.models import User
-from django.conf import settings
 
 from social.pipeline import partial
 from django_countries import countries
 
 from student.views import create_account_with_params, reactivation_email_for_user
-from student.models import UserProfile, CourseAccessRole
-from student.roles import (
-    CourseInstructorRole, CourseStaffRole, GlobalStaff, OrgStaffRole,
-    UserBasedRole, CourseCreatorRole, CourseBetaTesterRole, OrgInstructorRole,
-    LibraryUserRole, OrgLibraryUserRole
-)
+from student.models import UserProfile
 from third_party_auth.pipeline import (
     make_random_password, AuthEntryError
 )
 
-from opaque_keys.edx.keys import CourseKey
 from logging import getLogger
 
 log = getLogger(__name__)
@@ -49,13 +37,8 @@ def ensure_user_information(
     existing account or registration data) to proceed with the pipeline.
     """
 
-    token_url = '{}/api/v1/user/token.json'.format(settings.FEATURES['DRUPAL_PRIVIDER_URL'])
-    auth_url = '{}/api/v1/user/login.json'.format(settings.FEATURES['DRUPAL_PRIVIDER_URL'])
-    user_info_url = '{}/api/v1/user/{{}}.json'.format(settings.FEATURES['DRUPAL_PRIVIDER_URL'])
     response = {}
     data = {}
-    session = requests.session()
-    session.headers['Content-type'] = 'application/json'
 
     try:
         if 'data' in kwargs['response']:
@@ -66,39 +49,11 @@ def ensure_user_information(
         access_token = kwargs['response']['access_token']
 
         country = user_data.get('country')
-        if not country and 'self' in user_data:
-            log.info('No country in response.')
-            api = user_data['self'].replace('current-', '')
-            headers = {'Authorization': 'Bearer {}'.format(access_token)}
-            resp = requests.get(api, headers=headers)
-            json_resp = resp.json()
-            if 'data' in json_resp:
-                country = json_resp['data'][0]['country']
-                log.info('Get country from API: %s', country)
-                country = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
-
-        r = session.post(token_url)
-        if r.ok:
-            csrf_token = r.json().get('token')
-
-        if csrf_token:
-            session.headers['X-CSRF-Token'] = csrf_token
-            r = session.post(auth_url, data=json.dumps({
-                'username': settings.FEATURES['DRUPAL_API_USER'],
-                'password': settings.FEATURES['DRUPAL_API_PASSWORD']
-            }))
-
-            if r.ok:
-                r = session.get(user_info_url.format(user_data.get(settings.FEATURES['DRUPAL_ID_KEY'])))
-                gender = r.ok and r.json().get('field_gender', {}).get('und', [''])[0].get('value')
-                log.info('Get gender %s for user %s', gender, user_data['email'])
-                gender = gender and gender[0].lower() or 'o'
-
         data['username'] = user_data.get('username', user_data.get('name'))
         data['first_name'] = user_data.get('firstName')
         data['last_name'] = user_data.get('lastName')
         data['email'] = user_data['email']
-        data['country'] = country
+        data['country'] = country = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
         data['access_token'] = access_token
         if data['first_name'] or data['last_name']:
             data['name'] = data['first_name'] + " " + data['last_name']
