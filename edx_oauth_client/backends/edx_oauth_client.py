@@ -102,3 +102,31 @@ class EdxOAuthBackend(BaseOAuth2):
             return response['data'][0].get(self.ID_KEY)
         else:
             return response.get(self.ID_KEY)
+
+    def auth_complete_params(self, state=None):
+        client_id, client_secret = self.get_key_and_secret()
+        return {
+            'grant_type': 'authorization_code',  # request auth code
+            'code': self.data.get('code', ''),  # server response code
+            'id': client_id,
+            'secret': client_secret,
+            'redirect_uri': self.get_redirect_uri(state)
+        }
+
+    @handle_http_errors
+    def auth_complete(self, *args, **kwargs):
+        """Completes loging process, must return user instance"""
+        state = self.validate_state()
+        self.process_error(self.data)
+        response = self.request_access_token(
+            self.access_token_url(),
+            data=self.auth_complete_params(state),
+            headers=self.auth_headers(),
+            method=self.ACCESS_TOKEN_METHOD
+        )
+        self.process_error(response)
+        access_token = response['access_token']
+        if type(access_token) not in (str, unicode) and 'value' in access_token:
+            access_token = access_token['value']
+        return self.do_auth(access_token, response=response,
+                            *args, **kwargs)
