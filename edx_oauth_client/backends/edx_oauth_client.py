@@ -27,7 +27,7 @@ class EdxOAuthBackend(BaseOAuth2):
     """
     OAUTH_PROVIDER_URL = settings.FEATURES.get('OAUTH_PROVIDER_URL')
     name = 'edx-oauth2'
-    ID_KEY = settings.FEATURES.get('OAUTH_ID_KEY', 'uid')
+    ID_KEY = settings.FEATURES.get('OAUTH_ID_KEY', 'id')
     AUTHORIZATION_URL = '{}/oauth2/authorize'.format(OAUTH_PROVIDER_URL)
     ACCESS_TOKEN_URL = '{}/oauth2/token'.format(OAUTH_PROVIDER_URL)
     DEFAULT_SCOPE = settings.FEATURES.get('OAUTH_SCOPE', [])
@@ -83,9 +83,13 @@ class EdxOAuthBackend(BaseOAuth2):
     def user_data(self, access_token, *args, **kwargs):
         """ Grab user profile information from SSO. """
         data = self.get_json(
-            '{}{}'.format(self.OAUTH_PROVIDER_URL, settings.FEATURES.get('OAUTH_USER_DATA_URL', '/api/current-user/')),
+            '{}{}'.format(self.OAUTH_PROVIDER_URL, settings.FEATURES.get('OAUTH_USER_DATA_URL', '/login')),
             params={'access_token': access_token},
         )
+        if data.get('success') and 'user' in data:
+            data = data['user']
+        elif 'data' in data:
+            data = data['data']
         data['access_token'] = access_token
         return data
 

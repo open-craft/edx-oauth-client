@@ -1,6 +1,7 @@
 from cms.djangoapps.course_creators.models import CourseCreator
 from django.http import HttpResponseBadRequest, HttpResponse
 from django.contrib.auth.models import User
+from django.template.defaultfilters import slugify
 
 from social.pipeline import partial
 from django_countries import countries
@@ -11,6 +12,7 @@ from third_party_auth.pipeline import (
     make_random_password, AuthEntryError
 )
 
+from md5 import md5
 from logging import getLogger
 
 log = getLogger(__name__)
@@ -49,9 +51,9 @@ def ensure_user_information(
         access_token = kwargs['response']['access_token']
 
         country = user_data.get('country')
-        data['username'] = user_data.get('username', user_data.get('name'))
-        data['first_name'] = user_data.get('firstName')
-        data['last_name'] = user_data.get('lastName')
+        data['username'] = user_data.get('username', user_data.get('name', slugify(user_data['email'])))
+        data['first_name'] = user_data.get('firstname')
+        data['last_name'] = user_data.get('lastname')
         data['email'] = user_data['email']
         data['country'] = country = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
         data['access_token'] = access_token
@@ -79,6 +81,8 @@ def ensure_user_information(
         try:
             user = User.objects.get(email=data['email'])
         except User.DoesNotExist:
+            if User.objects.filter(username=data['username']).exists():
+                data['username'] = '{}_{}'.format(data['username'], md5(data['email']).hexdigest()[:4])
             create_account_with_params(request, data)
             user = request.user
             user.first_name = data['first_name']
@@ -120,7 +124,6 @@ def ensure_user_information(
 
     if user_profile:
         user_profile.name = user.get_full_name()
-        user_profile.gender = gender
         user_profile.save()
 
     if user and not user.is_active:
