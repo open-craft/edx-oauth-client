@@ -84,7 +84,7 @@ class EdxOAuthBackend(BaseOAuth2):
         """ Grab user profile information from SSO. """
         data = self.get_json(
             '{}{}'.format(self.OAUTH_PROVIDER_URL, settings.FEATURES.get('OAUTH_USER_DATA_URL', '/login')),
-            params={'access_token': access_token},
+            params={'access_token': access_token}, method='POST'
         )
         if data.get('success') and 'user' in data:
             data = data['user']
