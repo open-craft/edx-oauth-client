@@ -91,6 +91,7 @@ class EdxOAuthBackend(BaseOAuth2):
         elif 'data' in data:
             data = data['data']
         data['access_token'] = access_token
+        data.pop('password', None)
         return data
 
     def pipeline(self, pipeline, pipeline_index=0, *args, **kwargs):

@@ -73,8 +73,6 @@ def ensure_user_information(
         data['honor_code'] = 'True'
         data['password'] = make_random_password()
 
-        data['provider'] = backend.name
-
         if request.session.get('ExternalAuthMap'):
             del request.session['ExternalAuthMap']
 
