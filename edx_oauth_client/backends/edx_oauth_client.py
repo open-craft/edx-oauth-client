@@ -27,7 +27,7 @@ class EdxOAuthBackend(BaseOAuth2):
     """
     OAUTH_PROVIDER_URL = settings.FEATURES.get('OAUTH_PROVIDER_URL')
     name = 'edx-oauth2'
-    ID_KEY = settings.FEATURES.get('OAUTH_ID_KEY', 'id')
+    ID_KEY = settings.FEATURES.get('OAUTH_ID_KEY', '_id')
     AUTHORIZATION_URL = '{}/oauth2/authorize'.format(OAUTH_PROVIDER_URL)
     ACCESS_TOKEN_URL = '{}/oauth2/token'.format(OAUTH_PROVIDER_URL)
     DEFAULT_SCOPE = settings.FEATURES.get('OAUTH_SCOPE', [])
