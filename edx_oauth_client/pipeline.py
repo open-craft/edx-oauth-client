@@ -1,4 +1,3 @@
-from cms.djangoapps.course_creators.models import CourseCreator
 from django.http import HttpResponseBadRequest, HttpResponse
 from django.contrib.auth.models import User
 from django.template.defaultfilters import slugify
@@ -87,7 +86,6 @@ def ensure_user_information(
             user.last_name = data['last_name']
             user.is_active = True
             user.save()
-            CourseCreator.objects.get_or_create(user=user)
         return {'user': user}
 
     if not user:
@@ -109,7 +107,6 @@ def ensure_user_information(
             user.first_name = data['first_name']
             user.last_name = data['last_name']
             user.save()
-            CourseCreator.objects.get_or_create(user=user)
 
     user = user or response.get('user')
 
