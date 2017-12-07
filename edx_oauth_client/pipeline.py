@@ -150,7 +150,7 @@ def ensure_user_information(
 
 
 def clean_username(username):
-    username = username.replace('', '_')
+    username = username.replace(' ', '_')
     prefix = 1
 
     while True:
