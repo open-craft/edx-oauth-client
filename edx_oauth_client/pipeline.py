@@ -61,7 +61,7 @@ def ensure_user_information(
             log.info('Get country from API: %s', country)
         country = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
 
-        data['username'] = clean_username(user_data['username'])
+        data['username'] = user_data['username']
         data['first_name'] = user_data['firstName']
         data['last_name'] = user_data['lastName']
         data['email'] = user_data['email']
@@ -89,6 +89,7 @@ def ensure_user_information(
         try:
             user = User.objects.get(email=data['email'])
         except User.DoesNotExist:
+            data['username'] = clean_username(user_data['username'])
             create_account_with_params(request, data)
             user = request.user
             user.first_name = data['first_name']
