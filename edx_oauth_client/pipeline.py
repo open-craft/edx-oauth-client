@@ -61,7 +61,7 @@ def ensure_user_information(
             log.info('Get country from API: %s', country)
         country = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
 
-        data['username'] = user_data['username']
+        data['username'] = user_data['username'].replace(' ', '_')
         data['first_name'] = user_data['firstName']
         data['last_name'] = user_data['lastName']
         data['email'] = user_data['email']
