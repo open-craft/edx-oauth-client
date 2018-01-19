@@ -78,6 +78,8 @@ def ensure_user_information(
                 country = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
 
         gender = 'o'
+        fname = ''
+        lname = ''
         r = session.post(token_url)
         if r.ok:
             log.info('Get the API token')
@@ -93,13 +95,17 @@ def ensure_user_information(
 
             if r.ok:
                 r = session.get(user_info_url.format(user_data.get(settings.FEATURES['DRUPAL_ID_KEY'])))
-                gender = r.ok and r.json().get('field_gender', {}).get('und', [''])[0].get('value')
+                api_data = r.ok and r.json() or {}
+                full_name =  api_data.get('field_full_name', {}).get('und', [{}])[0].get('value', '')
+                gender = api_data.get('field_gender', {}).get('und', [{}])[0].get('value')
                 log.info('Get gender %s for user %s', gender, user_data['email'])
                 gender = gender and gender[0].lower() or 'o'
+                full_name_list = full_name.split()
+                fname, lname = full_name_list and (full_name_list[0], ' '.join(full_name_list[1:])) or ('', '')
 
         data['username'] = user_data.get('username', user_data.get('name'))
-        data['first_name'] = user_data.get('firstName')
-        data['last_name'] = user_data.get('lastName')
+        data['first_name'] = user_data.get('firstName', fname)
+        data['last_name'] = user_data.get('lastName', lname)
         data['email'] = user_data['email']
         data['country'] = country
         data['access_token'] = access_token
