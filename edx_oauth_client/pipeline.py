@@ -175,6 +175,7 @@ def ensure_user_information(
     if user_profile:
         user_profile.name = user.get_full_name()
         user_profile.gender = gender
+        user_profile.name = data.get('name')
         user_profile.save()
 
     if user and not user.is_active:
