@@ -96,8 +96,8 @@ def ensure_user_information(
             if r.ok:
                 r = session.get(user_info_url.format(user_data.get(settings.FEATURES['DRUPAL_ID_KEY'])))
                 api_data = r.ok and r.json() or {}
-                full_name =  api_data.get('field_full_name', {}).get('und', [{}])[0].get('value', '')
-                gender = api_data.get('field_gender', {}).get('und', [{}])[0].get('value')
+                full_name =  (api_data.get('field_full_name', {}) or {}).get('und', [{}])[0].get('value', '')
+                gender = (api_data.get('field_gender', {}) or {}).get('und', [{}])[0].get('value')
                 log.info('Get gender %s for user %s', gender, user_data['email'])
                 gender = gender and gender[0].lower() or 'o'
                 full_name_list = full_name.split()
