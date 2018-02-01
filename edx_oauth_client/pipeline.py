@@ -131,7 +131,7 @@ def ensure_user_information(
             del request.session['ExternalAuthMap']
 
         try:
-            user = User.objects.get(email=data['email'])
+            user = User.objects.get(social_auth__uid=data[backend.ID_KEY])
         except User.DoesNotExist:
             create_account_with_params(request, data)
             user = request.user
