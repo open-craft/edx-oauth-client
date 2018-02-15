@@ -54,6 +54,7 @@ def ensure_user_information(
     user_info_url = '{}/api/v1/user/{{}}.json'.format(settings.FEATURES['DRUPAL_PRIVIDER_URL'])
     response = {}
     data = {}
+    user_data = {}
     session = requests.session()
     session.headers['Content-type'] = 'application/json'
 
@@ -131,7 +132,7 @@ def ensure_user_information(
             del request.session['ExternalAuthMap']
 
         try:
-            user = User.objects.get(social_auth__uid=data[backend.ID_KEY])
+            user = User.objects.get(social_auth__uid=user_data.get(backend.ID_KEY)
         except User.DoesNotExist:
             create_account_with_params(request, data)
             user = request.user
