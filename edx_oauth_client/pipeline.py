@@ -27,6 +27,7 @@ def ensure_user_information(
         user_data['username'] = re.sub('[\W]', '', user_data['email'])[:30]
         user_data['name'] = user_data['first_name'] + " " + user_data['last_name']
         user_data['password'] = make_random_password()
+        log.info('Get user data from API: {}'.format(user_data))
         try:
             user = UserModel.objects.get(email=user_data['email'])
         except UserModel.DoesNotExist:
