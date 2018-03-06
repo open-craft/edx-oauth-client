@@ -12,7 +12,7 @@ In the edx/app/edxapp/lms.env.json file, edit the file so that it includes the f
     ...
     "ENABLE_COMBINED_LOGIN_REGISTRATION": true,
     "ENABLE_THIRD_PARTY_AUTH": true,
-    "SSO_SPALAH_BACKEND_NAME": "http://spalahsite.domain"
+    "SPALAH_DOMAIN": "http://spalahsite.domain"
 }
 
 "THIRD_PARTY_AUTH_BACKENDS":["edx_oauth_client.backends.spalah.SpalahOAuth2"]
