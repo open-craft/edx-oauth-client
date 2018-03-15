@@ -26,10 +26,10 @@ class SpalahOAuth2(BaseOAuth2):
     """
     name = 'spalah-oauth2'
     SPALAH_DOMAIN = settings.FEATURES.get('SPALAH_DOMAIN')
-    AUTHORIZATION_URL = '{}/o/authorize/'.format(SPALAH_DOMAIN)
-    ACCESS_TOKEN_URL = '{}/o/token/'.format(SPALAH_DOMAIN)
+    AUTHORIZATION_URL = '{}/oauth/authorize/'.format(SPALAH_DOMAIN)
+    ACCESS_TOKEN_URL = '{}/oauth/token/'.format(SPALAH_DOMAIN)
     ACCESS_TOKEN_METHOD = 'POST'
-    USER_DATA_URL = '{}/user/current/'.format(SPALAH_DOMAIN)
+    USER_DATA_URL = '{}/api/user/current/'.format(SPALAH_DOMAIN)
     ID_KEY = 'email'
     REDIRECT_STATE = False
 
