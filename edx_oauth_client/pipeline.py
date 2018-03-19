@@ -90,11 +90,11 @@ def ensure_user_information(
         try:
             user = User.objects.get(email=data['email'])
         except User.DoesNotExist:
-            data['username'] = clean_username(user_data['username'])
             if User.objects.filter(username=data['username']).exists():
                 if len(data['username']) > 26:
                     data['username'] = data['username'][:26]
                 data['username'] = '{}{}'.format(data['username'], md5(data['email']).hexdigest()[:4])
+            data['username'] = clean_username(user_data['username'])
             create_account_with_params(request, data)
             user = request.user
             user.first_name = data['first_name']
