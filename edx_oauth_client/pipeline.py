@@ -94,7 +94,6 @@ def ensure_user_information(
                 if len(data['username']) > 26:
                     data['username'] = data['username'][:26]
                 data['username'] = '{}{}'.format(data['username'], md5(data['email']).hexdigest()[:4])
-            data['username'] = clean_username(user_data['username'])
             create_account_with_params(request, data)
             user = request.user
             user.first_name = data['first_name']
