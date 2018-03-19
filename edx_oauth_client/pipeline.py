@@ -4,6 +4,7 @@ import urllib2
 from cms.djangoapps.course_creators.models import CourseCreator
 from django.http import HttpResponseBadRequest
 from django.contrib.auth.models import User
+from django.template.defaultfilters import slugify
 from openedx.core.djangoapps.profile_images.images import create_profile_images
 from openedx.core.djangoapps.profile_images.views import _make_upload_dt, LOG_MESSAGE_CREATE
 from openedx.core.djangoapps.user_api.accounts.image_helpers import get_profile_image_names, set_has_profile_image
@@ -61,7 +62,7 @@ def ensure_user_information(
             log.info('Get country from API: %s', country)
         country = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
 
-        data['username'] = user_data['username'].replace(' ', '_')
+        data['username'] = slugify(user_data['username'].replace(' ', '_'))
         data['first_name'] = user_data['firstName']
         data['last_name'] = user_data['lastName']
         data['email'] = user_data['email']
@@ -90,6 +91,8 @@ def ensure_user_information(
             user = User.objects.get(email=data['email'])
         except User.DoesNotExist:
             data['username'] = clean_username(user_data['username'])
+            if User.objects.filter(username=data['username']).exists():
+                data['username'] = '{}_{}'.format(data['username'], md5(data['email']).hexdigest()[:4])
             create_account_with_params(request, data)
             user = request.user
             user.first_name = data['first_name']
