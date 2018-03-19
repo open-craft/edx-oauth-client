@@ -62,7 +62,7 @@ def ensure_user_information(
             log.info('Get country from API: %s', country)
         country = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
 
-        data['username'] = slugify(user_data['username'].replace(' ', '_'))
+        data['username'] = slugify(user_data['username'].replace(' ', '_'))[:30]
         data['first_name'] = user_data['firstName']
         data['last_name'] = user_data['lastName']
         data['email'] = user_data['email']
@@ -92,7 +92,9 @@ def ensure_user_information(
         except User.DoesNotExist:
             data['username'] = clean_username(user_data['username'])
             if User.objects.filter(username=data['username']).exists():
-                data['username'] = '{}_{}'.format(data['username'], md5(data['email']).hexdigest()[:4])
+                if len(data['username']) > 26:
+                    data['username'] = data['username'][:26]
+                data['username'] = '{}{}'.format(data['username'], md5(data['email']).hexdigest()[:4])
             create_account_with_params(request, data)
             user = request.user
             user.first_name = data['first_name']
