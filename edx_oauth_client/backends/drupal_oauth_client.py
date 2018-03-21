@@ -1,6 +1,7 @@
 from django.conf import settings
-from social.backends.oauth import BaseOAuth2
-from social.utils import handle_http_errors
+from social_core.backends.oauth import BaseOAuth2
+from social_core.utils import handle_http_errors
+
 
 DEFAULT_AUTH_PIPELINE = [
     'third_party_auth.pipeline.parse_query_params',
