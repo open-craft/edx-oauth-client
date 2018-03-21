@@ -108,7 +108,7 @@ def ensure_user_information(
         data['first_name'] = user_data.get('firstName', fname)
         data['last_name'] = user_data.get('lastName', lname)
         data['email'] = user_data['email']
-        data['country'] = country
+        data['country'] = country or '--'
         data['access_token'] = access_token
         if data['first_name'] or data['last_name']:
             data['name'] = data['first_name'] + " " + data['last_name']
