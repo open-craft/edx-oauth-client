@@ -18,7 +18,9 @@ Redirect uri must be **http://<edx_url>/auth/complete/drupal-oauth2/**
         ...
         "ENABLE_COMBINED_LOGIN_REGISTRATION": true,
         "ENABLE_THIRD_PARTY_AUTH": true,
-        "DRUPAL_PRIVIDER_URL": "http://drupalsite.domain"
+        "DRUPAL_PRIVIDER_URL": "http://drupalsite.domain",
+        "DRUPAL_AUTHORIZE_URL":"/oauth2/authorize",
+        "DRUPAL_GET_TOKEN_URL":"/oauth2/token",
     }
     ...
     "THIRD_PARTY_AUTH_BACKENDS":["edx_oauth_client.backends.drupal_oauth_client.DrupalOAuthBackend"]
