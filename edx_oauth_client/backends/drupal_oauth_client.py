@@ -26,10 +26,12 @@ class DrupalOAuthBackend(BaseOAuth2):
     Backend for Drupal OAuth Server Authorization
     """
     DRUPAL_PRIVIDER_URL = settings.FEATURES.get('DRUPAL_PRIVIDER_URL')
+    DRUPAL_AUTHORIZE_URL = settings.FEATURES.get('DRUPAL_AUTHORIZE_URL')
+    DRUPAL_GET_TOKEN_URL = settings.FEATURES.get('DRUPAL_GET_TOKEN_URL')
     name = 'drupal-oauth2'
     ID_KEY = settings.FEATURES.get('DRUPAL_ID_KEY', 'uid')
-    AUTHORIZATION_URL = '{}/oauth2/authorize'.format(DRUPAL_PRIVIDER_URL)
-    ACCESS_TOKEN_URL = '{}/oauth2/token'.format(DRUPAL_PRIVIDER_URL)
+    AUTHORIZATION_URL = '{}{}'.format(DRUPAL_PRIVIDER_URL, DRUPAL_AUTHORIZE_URL)
+    ACCESS_TOKEN_URL = '{}{}'.format(DRUPAL_PRIVIDER_URL, DRUPAL_GET_TOKEN_URL)
     # USER_DATA_URL = '{url}/oauth2/access_token/{access_token}/'
     DEFAULT_SCOPE = settings.FEATURES.get('DRUPAL_SCOPE', ['api'])
     REDIRECT_STATE = False
