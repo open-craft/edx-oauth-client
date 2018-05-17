@@ -6,7 +6,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth import REDIRECT_FIELD_NAME, logout
 from django.shortcuts import redirect
 
-from social.apps.django_app.views import auth, NAMESPACE
+from social_django.views import auth, NAMESPACE
 
 try:
     from opaque_keys.edx.keys import CourseKey
