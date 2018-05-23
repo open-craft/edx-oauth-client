@@ -82,6 +82,7 @@ def ensure_user_information(
         fname = ''
         lname = ''
         r = session.post(token_url)
+        csrf_token = None
         if r.ok:
             log.info('Get the API token')
             csrf_token = r.json().get('token')
