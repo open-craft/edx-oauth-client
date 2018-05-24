@@ -114,7 +114,7 @@ def ensure_user_information(
         if data['first_name'] or data['last_name']:
             data['name'] = data['first_name'] + " " + data['last_name']
         else:
-            data['name'] = user_data.get('preferred_username')
+            data['name'] = user_data.get('name', user_data.get('preferred_username'))
     except Exception as e:
         log.error('Exception %s', e)
         raise AuthEntryError(backend, 'can\' get user data.')
@@ -127,7 +127,7 @@ def ensure_user_information(
         data['honor_code'] = 'True'
         data['password'] = make_random_password()
 
-        #data['provider'] = backend.name
+        data['provider'] = backend.name
 
         if request.session.get('ExternalAuthMap'):
             del request.session['ExternalAuthMap']
