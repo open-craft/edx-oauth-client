@@ -114,7 +114,7 @@ def ensure_user_information(
         if data['first_name'] or data['last_name']:
             data['name'] = data['first_name'] + " " + data['last_name']
         else:
-            data['name'] = user_data.get('preferred_username')
+            data['name'] = user_data.get('name', user_data.get('preferred_username'))
     except Exception as e:
         log.error('Exception %s', e)
         raise AuthEntryError(backend, 'can\' get user data.')
@@ -127,7 +127,7 @@ def ensure_user_information(
         data['honor_code'] = 'True'
         data['password'] = make_random_password()
 
-        #data['provider'] = backend.name
+        data['provider'] = backend.name
 
         if request.session.get('ExternalAuthMap'):
             del request.session['ExternalAuthMap']
@@ -135,7 +135,14 @@ def ensure_user_information(
         try:
             user = User.objects.get(social_auth__uid=user_data.get(backend.ID_KEY))
         except User.DoesNotExist:
-            create_account_with_params(request, data)
+            log.error('11111111')
+            log.error(data)
+            try:
+                resp = create_account_with_params(request, data)
+                log.error(resp)
+                log.error('22222222')
+            except Exception as e:
+                log.error(e)
             user = request.user
             user.first_name = data['first_name']
             user.last_name = data['last_name']
