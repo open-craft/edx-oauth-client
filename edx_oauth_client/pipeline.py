@@ -135,12 +135,10 @@ def ensure_user_information(
         try:
             user = User.objects.get(social_auth__uid=user_data.get(backend.ID_KEY))
         except User.DoesNotExist:
-            log.error('11111111')
             log.error(data)
             try:
                 resp = create_account_with_params(request, data)
                 log.error(resp)
-                log.error('22222222')
             except Exception as e:
                 log.error(e)
             user = request.user
