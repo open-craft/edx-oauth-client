@@ -99,11 +99,16 @@ def ensure_user_information(
                 r = session.get(user_info_url.format(user_data.get(settings.FEATURES['DRUPAL_ID_KEY'])))
                 api_data = r.ok and r.json() or {}
                 full_name =  (api_data.get('field_full_name', {}) or {}).get('und', [{}])[0].get('value', '')
+                fname = (api_data.get('field_first_name', {}) or {}).get('und', [{}])[0].get('value', '')
+                lname = (api_data.get('field_last_name', {}) or {}).get('und', [{}])[0].get('value', '')
                 gender = (api_data.get('field_gender', {}) or {}).get('und', [{}])[0].get('value')
                 log.info('Get gender %s for user %s', gender, user_data['email'])
                 gender = gender and gender[0].lower() or 'o'
-                full_name_list = full_name.split()
-                fname, lname = full_name_list and (full_name_list[0], ' '.join(full_name_list[1:])) or ('', '')
+                if not (fname and lname) and full_name:
+                    full_name_list = full_name.split()
+                    tmp_fname, tmp_lname = (full_name_list[0], ' '.join(full_name_list[1:]))
+                    fname = fname or tmp_fname
+                    lname = lname or tmp_lname
 
         data['username'] = user_data.get('username', user_data.get('name'))
         data['first_name'] = user_data.get('firstName', fname)
