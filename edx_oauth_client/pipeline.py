@@ -165,8 +165,8 @@ def ensure_user_information(
         if user.id != 1:
             user.email = data['email']
             user.username = data['username']
-            user.first_name = data['fname']
-            user.last_name = data['lname']
+            user.first_name = data['first_name']
+            user.last_name = data['last_name']
             user.save()
             CourseCreator.objects.get_or_create(user=user)
 
