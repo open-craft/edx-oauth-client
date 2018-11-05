@@ -106,7 +106,7 @@ def ensure_user_information(
                 gender = gender and gender[0].lower() or 'o'
                 if not (fname and lname) and full_name:
                     full_name_list = full_name.split()
-                    tmp_fname, tmp_lname = full_name_list and (full_name_list[0], ' '.join(full_name_list[1:])) or ('', '')
+                    tmp_fname, tmp_lname = (full_name_list[0], ' '.join(full_name_list[1:]))
                     fname = fname or tmp_fname
                     lname = lname or tmp_lname
 
