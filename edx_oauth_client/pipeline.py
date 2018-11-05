@@ -111,13 +111,13 @@ def ensure_user_information(
                     lname = lname or tmp_lname
 
         data['username'] = user_data.get('username', user_data.get('name'))
-        data['fname'] = user_data.get('firstName', fname)
-        data['lname'] = user_data.get('lastName', lname)
+        data['first_name'] = user_data.get('firstName', fname)
+        data['last_name'] = user_data.get('lastName', lname)
         data['email'] = user_data['email']
         data['country'] = country or '--'
         data['access_token'] = access_token
-        if data['fname'] or data['lname']:
-            data['name'] = data['fname'] + " " + data['lname']
+        if data['first_name'] or data['last_name']:
+            data['name'] = data['first_name'] + " " + data['last_name']
         else:
             data['name'] = user_data.get('name', user_data.get('preferred_username'))
     except Exception as e:
@@ -142,8 +142,8 @@ def ensure_user_information(
         except User.DoesNotExist:
             create_account_with_params(request, data)
             user = request.user
-            user.first_name = data['fname']
-            user.last_name = data['lname']
+            user.first_name = data['first_name']
+            user.last_name = data['last_name']
             user.is_active = True
             user.save()
             CourseCreator.objects.get_or_create(user=user)
