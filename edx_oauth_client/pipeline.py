@@ -1,9 +1,13 @@
 from logging import getLogger
 
+from student.forms import AccountCreationForm
 from django.contrib.auth.models import User
-from social_core.pipeline.partial import partial
-from student.views import create_account_with_params, reactivation_email_for_user
-from third_party_auth.pipeline import (AuthEntryError, make_random_password)
+from social_core.pipeline import partial
+from openedx.core.djangoapps.user_api.accounts.utils import generate_password
+from student.helpers import (
+    do_create_account,
+)
+from third_party_auth.pipeline import AuthEntryError
 
 log = getLogger(__name__)
 
@@ -39,7 +43,7 @@ def ensure_user_information(
         data['country'] = country
         data['access_token'] = access_token
         if any((data['first_name'], data['last_name'])):
-            data['name'] = '{} {}'.format(['first_name'], data['last_name']).strip()
+            data['name'] = '{} {}'.format(data['first_name'], data['last_name']).strip()
         else:
             data['name'] = user_data.get('username')
         if not all((data['username'], data['email'])):
@@ -55,18 +59,25 @@ def ensure_user_information(
         raise AuthEntryError(backend, "Cannot receive user's data")
 
     if not user:
-        request = strategy.request
         data['terms_of_service'] = "True"
         data['honor_code'] = 'True'
-        data['password'] = make_random_password()
-
+        data['password'] = generate_password()
         data['provider'] = backend.name
 
         try:
             user = User.objects.get(email=data['email'])
         except User.DoesNotExist:
-            create_account_with_params(request, data)
+            form = AccountCreationForm(
+                data=data,
+                extra_fields={},
+                extended_profile_fields={},
+                enforce_password_policy=False,
+                tos_required=False,
+            )
+
+            (user, profile, registration) = do_create_account(form)
             user.is_active = True
+            user.set_unusable_password()
             user.save()
 
     return {'user': user}

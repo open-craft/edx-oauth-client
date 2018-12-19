@@ -32,12 +32,12 @@ class GenericOAuthBackend(BaseOAuth2):
     """
     Backend for Generic OAuth Server Authorization.
     """
-    name = 'custom-oauth2'
-
     CUSTOM_OAUTH_PARAMS = settings.CUSTOM_OAUTH_PARAMS
 
     if not all(CUSTOM_OAUTH_PARAMS.values()):
         log.error("Some of the CUSTOM_OAUTH_PARAMS are improperly configured. Custom oauth won't work correctly.")
+
+    name = CUSTOM_OAUTH_PARAMS.get('PROVIDER_NAME', 'custom-oauth2')
 
     PROVIDER_URL = CUSTOM_OAUTH_PARAMS.get('PROVIDER_URL')
     AUTHORIZE_URL = CUSTOM_OAUTH_PARAMS.get('AUTHORIZE_URL')  # '/oauth2/authorize' usually is default value
@@ -103,12 +103,10 @@ class GenericOAuthBackend(BaseOAuth2):
         """
         Grab user profile information from SSO.
         """
-        data = self.get_json(
+        return self.get_json(
             urlparse.urljoin(self.PROVIDER_URL, self.USER_DATA_URL),
-            params={'access_token': access_token},
+            headers={'Authorization': 'Bearer {}'.format(access_token)}
         )
-        data['access_token'] = access_token
-        return data
 
     def pipeline(self, pipeline, pipeline_index=0, *args, **kwargs):
         self.strategy.session.setdefault('auth_entry', 'register')
