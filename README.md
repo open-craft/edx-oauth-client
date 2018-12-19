@@ -6,7 +6,7 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
 
  - Install this client
    ```
-   pip install git+https://github.com/raccoongang/edx-oauth-client.git#egg=edx_oauth_client
+   pip install git+https://github.com/raccoongang/edx-oauth-client.git@hawthorn-master#egg=edx_oauth_client
    ```
 
  - Enable THIRD_PARTY_AUTH in edX
@@ -27,6 +27,7 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
         "AUTHORIZE_URL": "/oauth2/authorize",
         "GET_TOKEN_URL": "/oauth2/access_token",
         "PROVIDER_ID_KEY": "<unique identifier>",
+        "PROVIDER_NAME": "custom-oauth2",
         "USER_DATA_URL": "/api/v0/users/me"
     },
     ```
