@@ -18,7 +18,6 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
         ...
         "ENABLE_COMBINED_LOGIN_REGISTRATION": true,
         "ENABLE_THIRD_PARTY_AUTH": true,
-        "ENABLE_CUSTOM_OAUTH_BACKEND": true,
         ...
     }
     ...
@@ -30,26 +29,15 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
         "PROVIDER_NAME": "custom-oauth2",
         "USER_DATA_URL": "/api/v0/users/me"
     },
-    ```
-
-    `CUSTOM_OAUTH_PARAMS` should be added to the `lms/envs/common.py` if
-    it is not supored by used OpenEdx.
-
-    Custom backend is switched on by setting flag
-    "ENABLE_CUSTOM_OAUTH_BACKEND" to true, if this functionality is not
-    supported by used OpenEdx it could be added manually.
-    ```
+    
     "THIRD_PARTY_AUTH_BACKENDS":["edx_oauth_client.backends.generic_oauth_client.GenericOAuthBackend"],
     ```
 
- - Add in file **lms/envs/common.py**. It's preffered to place it
- somewhere at the top of the list
+ - `CUSTOM_OAUTH_PARAMS` should be added to the `lms/envs/common.py` if
+    it is not supored by used OpenEdx.
     ```
-    INSTALLED_APPS = (
-        ...
-        'edx_oauth_client',
-        ...
-    )
+    if FEATURES.get('ENABLE_THIRD_PARTY_AUTH'):
+        CUSTOM_OAUTH_PARAMS = ENV_TOKENS.get('CUSTOM_OAUTH_PARAMS', {})
     ```
 
  - Add provider config in edX admin panel /admin/third_party_auth/oauth2providerconfig/
