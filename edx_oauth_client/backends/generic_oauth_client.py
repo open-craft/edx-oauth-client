@@ -34,7 +34,7 @@ class GenericOAuthBackend(BaseOAuth2):
     """
     CUSTOM_OAUTH_PARAMS = settings.CUSTOM_OAUTH_PARAMS
 
-    if not all(CUSTOM_OAUTH_PARAMS.values()):
+    if not (CUSTOM_OAUTH_PARAMS and all(CUSTOM_OAUTH_PARAMS.values())):
         log.error("Some of the CUSTOM_OAUTH_PARAMS are improperly configured. Custom oauth won't work correctly.")
 
     name = CUSTOM_OAUTH_PARAMS.get('PROVIDER_NAME', 'custom-oauth2')
