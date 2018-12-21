@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from logging import getLogger
 
 from student.forms import AccountCreationForm
@@ -43,7 +44,7 @@ def ensure_user_information(
         data['country'] = country
         data['access_token'] = access_token
         if any((data['first_name'], data['last_name'])):
-            data['name'] = '{} {}'.format(data['first_name'], data['last_name']).strip()
+            data['name'] = u'{} {}'.format(data['first_name'], data['last_name']).strip()
         else:
             data['name'] = user_data.get('username')
         if not all((data['username'], data['email'])):
