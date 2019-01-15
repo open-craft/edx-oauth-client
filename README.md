@@ -27,7 +27,8 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
         "GET_TOKEN_URL": "/oauth2/access_token",
         "PROVIDER_ID_KEY": "<unique identifier>",
         "PROVIDER_NAME": "custom-oauth2",
-        "USER_DATA_URL": "/api/v0/users/me"
+        "USER_DATA_URL": "/api/v0/users/me",
+        "COOKIE_NAME": "cookie_name" # If you're want seamless authorization
     },
     
     "THIRD_PARTY_AUTH_BACKENDS":["edx_oauth_client.backends.generic_oauth_client.GenericOAuthBackend"],
@@ -51,16 +52,21 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
    - name slug should be the same as provider name ? temp
 
  - If you're want seamless authorization add middleware classes for
- SeamlessAuthorization (crossdomain cookie support needed)
+ SeamlessAuthorization (crossdomain cookie support needed).
+ In the `edx/app/edxapp/lms.env.json` file.
    ```
-   MIDDLEWARE_CLASSES += ("edx_oauth_client.middleware.SeamlessAuthorization",)
+   "EXTRA_MIDDLEWARE_CLASSES": ["edx_oauth_client.middleware.SeamlessAuthorization"]
+   ```
+
+ - If SeamlessAuthorization shouldn't to work for Django administration add in `lms/envs/common.py`
+   ```
+   SOCIAL_AUTH_EXCLUDE_URL_PATTERN = r'^/admin'
    ```
 
    This feature requers to update you SSO Provider site's behaviour:
 
-   Create multi-domain cookies named “authenticated”=1 and
-   “authenticated_user”=”<username>” if user is logged in. And delete
-   these cookies on logout
+   Create multi-domain cookie `cookie_name` with the unique value for each user if user is logged in.
+   And delete these cookie on logout.
 
    Also you should initiate user creation on edX after user creation on
    Provider. You need to send GET request to Edx API on url:

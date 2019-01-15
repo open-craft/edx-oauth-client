@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib.auth import REDIRECT_FIELD_NAME, logout
 from django.shortcuts import redirect
+from edx_oauth_client.backends.generic_oauth_client import GenericOAuthBackend
 
 from social_django.views import auth, NAMESPACE
 
@@ -16,33 +17,37 @@ except ImportError:
 
 
 class SeamlessAuthorization(object):
-    cookie_name = 'authenticated'
+
+    cookie_name = GenericOAuthBackend.CUSTOM_OAUTH_PARAMS.get('COOKIE_NAME', 'authenticated')
 
     def process_request(self, request):
         """
-        Check multidomain cookie and if user is authenticated on sso, login it on edx.
+        Checks cross-domain cookies and, if the user is authenticated with SSO,
+        authorizes the user on edX.
         """
-        backend = "custom-oauth2"
+        backend = GenericOAuthBackend.name
         current_url = request.get_full_path()
 
-        # don't work for admin
-        for attr in ['SOCIAL_AUTH_EXCLUDE_URL_PATTERN', 'AUTOCOMPLETE_EXCLUDE_URL_PATTERN']:
-            if hasattr(settings, attr):
-                r = re.compile(getattr(settings, attr))
-                if r.match(current_url):
-                    return None
+        # SeamlessAuthorization doesn't work for Django administration
+        if hasattr(settings, 'SOCIAL_AUTH_EXCLUDE_URL_PATTERN'):
+            r = re.compile(settings.SOCIAL_AUTH_EXCLUDE_URL_PATTERN)
+            if r.match(current_url):
+                return None
 
-        auth_cookie = request.COOKIES.get(self.cookie_name, '0').lower()
-        auth_cookie_user = request.COOKIES.get('{}_user'.format(self.cookie_name))
-        auth_cookie = (auth_cookie in ('1', 'true', 'ok'))
+        auth_cookie = request.COOKIES.get(self.cookie_name)
+        auth_cookie_portal = request.session.get(self.cookie_name)
         continue_url = reverse('{0}:complete'.format(NAMESPACE),
                                args=(backend,))
         is_auth = request.user.is_authenticated()
-
-        is_same_user = (request.user.username == auth_cookie_user)
+        is_same_user = (auth_cookie == auth_cookie_portal)
 
         # Check for infinity redirection loop
         is_continue = (continue_url in current_url)
+
+        request.session[self.cookie_name] = auth_cookie
+
+        if not is_same_user and is_auth:
+            logout(request)
 
         if (auth_cookie and not is_continue and (not is_auth or not is_same_user)) or \
                 ('force_auth' in request.session and request.session.pop('force_auth')):
