@@ -121,7 +121,8 @@ class GenericOAuthBackend(BaseOAuth2):
         if 'data' in response:
             id_key = response['data'][0].get(self.ID_KEY)
         else:
-            id_key = response.get('email')
+            id_key = response.get(self.ID_KEY)
+
         if not id_key:
             log.error("ID_KEY is not found in the User data response. SSO won't work correctly")
         return id_key
