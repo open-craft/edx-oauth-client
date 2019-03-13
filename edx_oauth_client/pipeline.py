@@ -20,12 +20,11 @@ def parse_user_information(
     data = {}
     if kwargs.get('request', {}).get('id_token'):
         user_data = get_user_data(kwargs['request']['id_token'])
-        username = user_data.get('username', user_data.get('given_name'))
-        data['username'] = username
+        data['username'] = user_data.get('email') # to avoid username with a suffix or hash string
         data['first_name'] = user_data.get('given_name')
         data['last_name'] = user_data.get('family_name')
         data['email'] = user_data.get('email')
-        data['name'] = user_data.get('name')
+        data['name'] = user_data.get('email') # to avoid username with a suffix or hash string
         data['access_token'] = user_data.get('socialIdpUserId', '')
     if not user:
         try:
