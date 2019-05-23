@@ -8,6 +8,7 @@ from openedx.core.djangoapps.user_api.accounts.utils import generate_password
 from student.helpers import (
     do_create_account,
 )
+from student.roles import CourseInstructorRole
 from third_party_auth.pipeline import AuthEntryError
 
 log = getLogger(__name__)
@@ -80,5 +81,15 @@ def ensure_user_information(
             user.is_active = True
             user.set_unusable_password()
             user.save()
+
+    instructor_edx_courses_list = user_data.get('instructor_edx_courses_list', [])
+
+    for course_id in instructor_edx_courses_list:
+        try:
+            role = CourseInstructorRole(course_id)
+        except KeyError as e:
+            log.exception(e)
+        else:
+            role.add_users(user)
 
     return {'user': user}
