@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 from logging import getLogger
 
+from opaque_keys import InvalidKeyError
+from opaque_keys.edx.keys import CourseKey
+
 from student.forms import AccountCreationForm
 from django.contrib.auth.models import User
 from social_core.pipeline import partial
@@ -86,10 +89,11 @@ def ensure_user_information(
 
     for course_id in instructor_edx_courses_list:
         try:
-            role = CourseInstructorRole(course_id)
-        except KeyError as e:
-            log.exception(e)
+            course_key = CourseKey.from_string(course_id)
+        except InvalidKeyError as e:
+            log.exception('{} - {}'.format(e, course_id))
         else:
+            role = CourseInstructorRole(course_key)
             role.add_users(user)
 
     return {'user': user}
