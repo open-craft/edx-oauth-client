@@ -69,7 +69,13 @@ class OAuthRedirection(object):
         """
         Redirect to PLP for pages that have duplicated functionality on PLP.
         """
-        PROVIDER_URL = settings.get('CUSTOM_OAUTH_PARAMS', {}).get("PROVIDER_URL", "")
+        CUSTOM_OAUTH_PARAMS = settings.CUSTOM_OAUTH_PARAMS if hasattr(settings, 'CUSTOM_OAUTH_PARAMS') else {}
+        PROVIDER_URL = CUSTOM_OAUTH_PARAMS.get("PROVIDER_URL", "")
+
+        COURSES_LIST_URL_PATH = CUSTOM_OAUTH_PARAMS.get("COURSES_LIST_URL_PATH")
+        USER_ACCOUNT_URL_PATH = CUSTOM_OAUTH_PARAMS.get("USER_ACCOUNT_URL_PATH")
+        DASHBOARD_URL_PATH = CUSTOM_OAUTH_PARAMS.get("DASHBOARD_URL_PATH")
+
         current_url = request.get_full_path()
         if current_url:
             start_url = current_url.split('?')[0].split('/')[1]
@@ -95,9 +101,9 @@ class OAuthRedirection(object):
             debug_handle_local_urls = ('debug', settings.STATIC_URL, settings.MEDIA_URL)
             handle_local_urls += debug_handle_local_urls
 
-        if request.path == "/dashboard/" or request.path == "/dashboard":
-            if is_auth:
-                return redirect(os.path.join(PROVIDER_URL, 'members', request.user.username))
+        if request.path in ("/dashboard/", "/dashboard"):
+            if is_auth and DASHBOARD_URL_PATH:
+                return redirect(os.path.join(PROVIDER_URL, DASHBOARD_URL_PATH))
             else:
                 return redirect(PROVIDER_URL)
 
@@ -113,20 +119,19 @@ class OAuthRedirection(object):
         if r.match(current_url):
             is_courses_list_or_about_page = True
 
-        if request.path == "/courses/" or request.path == "/courses":
-            return redirect(os.path.join(PROVIDER_URL, 'courses'))
+        if COURSES_LIST_URL_PATH and request.path in ("/courses/", "/courses"):
+            return redirect(os.path.join(PROVIDER_URL, COURSES_LIST_URL_PATH))
 
-        if request.path.startswith(
-                '/u/') or request.path == "/account/settings/" or request.path == "/account/settings":
-            if is_auth:
-                return redirect(os.path.join(PROVIDER_URL, 'members', request.user.username, 'profile'))
+        if request.path.startswith('/u/') or request.path in ("/account/settings/", "/account/settings"):
+            if is_auth and USER_ACCOUNT_URL_PATH:
+                return redirect(os.path.join(PROVIDER_URL, USER_ACCOUNT_URL_PATH))
             else:
                 return redirect(PROVIDER_URL)
 
         if start_url not in handle_local_urls or is_courses_list_or_about_page:
             if start_url.split('?')[0] not in handle_local_urls:
-                drupal_url = PROVIDER_URL.rstrip("/") + "/"
-                return redirect("%s%s" % (drupal_url, current_url))
+                provider_url = PROVIDER_URL.rstrip("/") + "/"
+                return redirect("%s%s" % (provider_url, current_url))
 
         if not is_auth and start_url not in auth_process_urls and start_url not in api_urls:
             request.session['force_auth'] = True

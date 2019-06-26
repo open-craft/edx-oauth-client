@@ -1,6 +1,6 @@
 # edx_oauth_client
 SSO Generic Client for OAuth Identity Provider (ID).
-### Instalation guide
+### Installation guide
  - Setup your ID site as OAuth2 server. Add client for OpenEdx
 Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
 
@@ -28,14 +28,16 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
         "PROVIDER_ID_KEY": "<unique identifier>",
         "PROVIDER_NAME": "custom-oauth2",
         "USER_DATA_URL": "/api/v0/users/me",
-        "COOKIE_NAME": "cookie_name" # If you're want seamless authorization
+        "COOKIE_NAME": "cookie_name", # If you're want seamless authorization
+        "COURSES_LIST_URL_PATH": "courses",  # write if course_list redirection is needed
+        "USER_ACCOUNT_URL_PATH": "account",  # write if user account redirection is needed
+        "DASHBOARD_URL_PATH": "user"  # write if dashboard redirection is needed
     },
     
     "THIRD_PARTY_AUTH_BACKENDS":["edx_oauth_client.backends.generic_oauth_client.GenericOAuthBackend"],
     ```
 
- - `CUSTOM_OAUTH_PARAMS` should be added to the `lms/envs/common.py` if
-    it is not supored by used OpenEdx.
+ - `CUSTOM_OAUTH_PARAMS` should be added to the `lms/envs/aws.py` if it is not supported by used OpenEdx.
     ```
     if FEATURES.get('ENABLE_THIRD_PARTY_AUTH'):
         CUSTOM_OAUTH_PARAMS = ENV_TOKENS.get('CUSTOM_OAUTH_PARAMS', {})
@@ -55,7 +57,10 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
  SeamlessAuthorization (crossdomain cookie support needed).
  In the `edx/app/edxapp/lms.env.json` file.
    ```
-   "EXTRA_MIDDLEWARE_CLASSES": ["edx_oauth_client.middleware.SeamlessAuthorization"]
+    "EXTRA_MIDDLEWARE_CLASSES": [
+        "edx_oauth_client.middleware.SeamlessAuthorization",
+        "edx_oauth_client.middleware.OAuthRedirection"
+    ],
    ```
 
  - If SeamlessAuthorization shouldn't to work for Django administration add in `lms/envs/common.py`
@@ -63,7 +68,7 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
    SOCIAL_AUTH_EXCLUDE_URL_PATTERN = r'^/admin'
    ```
 
-   This feature requers to update you SSO Provider site's behaviour:
+   This feature requires to update you SSO Provider site's behaviour:
 
    Create multi-domain cookie `cookie_name` with the unique value for each user if user is logged in.
    And delete these cookie on logout.
