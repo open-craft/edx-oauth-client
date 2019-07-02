@@ -48,7 +48,7 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
     ...
     'edx_oauth_client',
     ...
-				)
+	)
     ```
 
  - Add provider config in edX admin panel `/admin/third_party_auth/oauth2providerconfig/`
@@ -80,58 +80,59 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
    
    This feature create multi-domain cookie cookie_name with the unique value for each user if user is logged in. And delete these cookie on logout.
       ```
-   $auth_cookie_name = "authenticated";
-		 $domain_name = "<YOUR_DOMAIN>";
-		 
-		 add_action('wp_login', 'set_auth_cookie', 1, 2);
-		 function set_auth_cookie($user_login, $user)
-		 {
-		     /**
-		      * After login set multidomain cookies which gives to edx understanding that user have already registrated
-		      */
-		     global $auth_cookie_name, $domain_name;
-		     setcookie($auth_cookie_name, 1, time() + 60 * 60 * 24 * 30, "/", ".{$domain_name}");
-		     setcookie($auth_cookie_name . "_user", $user->nickname, time() + 60 * 60 * 24 * 30, "/", ".{$domain_name}");
-		 }
-		 
-		 add_action('wp_logout', 'remove_custom_cookie_admin');
-		 function remove_custom_cookie_admin()
-		 {
-		     /**
-		      * After logout delete multidomain cookies which was added above
-		      */
-		     global $auth_cookie_name, $domain_name;
-		     setcookie($auth_cookie_name, "", time() - 3600, "/", ".{$domain_name}");
-		     setcookie($auth_cookie_name . "_user", "", time() - 3600, "/", ".{$domain_name}");
-		 }
-		 
-		 add_action('user_register', 'create_edx_user_after_registration', 10, 1);
-		 
-		 function create_edx_user_after_registration($user_id)
-		 {
-		     /**
-		      * Create edX user after user creation on Wordpress. This hack allows make API requests to edX before
-		      * the user visit edX first time.
-		      * Also this function allows update user data by wordpress initiative
-		      */
-		     global $wpdb, $domain_name;
-		     # fix this url with your LMS address
-		     $client_url = "https://courses.{$domain_name}/auth/complete/custom-oauth2/";
-		     $query = "SELECT * FROM `wp_oauth_clients` WHERE `redirect_uri` = '{$client_url}'";
-		     $client = $wpdb->get_row($query);
-		     if ($client) {
-		         require_once ABSPATH . '/wp-content/plugins/oauth2-provider/library/OAuth2/Autoloader.php';
-		         OAuth2\Autoloader::register();
-		         $storage = new OAuth2\Storage\Wordpressdb();
-		         $authCode = new OAuth2\OpenID\ResponseType\AuthorizationCode($storage);
-		         $code = $authCode->createAuthorizationCode($client->client_id, $user_id, $client->redirect_uri);
-		         $params = http_build_query(array(
-		             'state' => md5(time()),
-		             'code' => $code
-		         ));
-		         file_get_contents($client->redirect_uri . "?" . $params);
-		     }
-		 }
+    $auth_cookie_name = "authenticated";
+    $domain_name = "<YOUR_DOMAIN>";
+    
+    add_action('wp_login', 'set_auth_cookie', 1, 2);
+    function set_auth_cookie($user_login, $user)
+    {
+        /**
+         * After login set multidomain cookies which gives to edx understanding that user have already registrated
+         */
+        global $auth_cookie_name, $domain_name;
+        setcookie($auth_cookie_name, 1, time() + 60 * 60 * 24 * 30, "/", ".{$domain_name}");
+        setcookie($auth_cookie_name . "_user", $user->nickname, time() + 60 * 60 * 24 * 30, "/", ".{$domain_name}");
+    }
+    
+    add_action('wp_logout', 'remove_custom_cookie_admin');
+    function remove_custom_cookie_admin()
+    {
+        /**
+         * After logout delete multidomain cookies which was added above
+         */
+        global $auth_cookie_name, $domain_name;
+        setcookie($auth_cookie_name, "", time() - 3600, "/", ".{$domain_name}");
+        setcookie($auth_cookie_name . "_user", "", time() - 3600, "/", ".{$domain_name}");
+    }
+    
+    add_action('user_register', 'create_edx_user_after_registration', 10, 1);
+    
+    function create_edx_user_after_registration($user_id)
+    {
+        /**
+         * Create edX user after user creation on Wordpress. This hack allows make API requests to edX before
+         * the user visit edX first time.
+         * Also this function allows update user data by wordpress initiative
+         */
+        global $wpdb, $domain_name;
+        # fix this url with your LMS address
+        $client_url = "https://courses.{$domain_name}/auth/complete/custom-oauth2/";
+        $query = "SELECT * FROM `wp_oauth_clients` WHERE `redirect_uri` = '{$client_url}'";
+        $client = $wpdb->get_row($query);
+        if ($client) {
+            require_once ABSPATH . '/wp-content/plugins/oauth2-provider/library/OAuth2/Autoloader.php';
+            OAuth2\Autoloader::register();
+            $storage = new OAuth2\Storage\Wordpressdb();
+            $authCode = new OAuth2\OpenID\ResponseType\AuthorizationCode($storage);
+            $code = $authCode->createAuthorizationCode($client->client_id, $user_id, $client->redirect_uri);
+            $params = http_build_query(array(
+                'state' => md5(time()),
+                'code' => $code
+            ));
+            file_get_contents($client->redirect_uri . "?" . $params);
+        }
+    }
+
    ```
 **Note.** If you work on local devstack. Inside your edx’s vagrant in
 /etc/hosts add a row with your machine’s IP and provider’s vhost. For
