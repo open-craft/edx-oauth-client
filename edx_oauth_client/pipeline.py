@@ -32,21 +32,13 @@ def ensure_user_information(
         log.info('Get user data: %s', str(user_data))
         access_token = kwargs['response']['access_token']
 
-        country = user_data.get('country')
-        if not country:
-            log.info('No country in response.')
-
         # Received fields could be pretty different from the expected, mandatory are only 'username' and 'email'
-        data['username'] = user_data.get('username', user_data.get('name'))
-        data['first_name'] = user_data.get('firstName', user_data.get('first_name'))
-        data['last_name'] = user_data.get('lastName', user_data.get('last_name'))
-        data['email'] = user_data.get('email')
-        data['country'] = country
         data['access_token'] = access_token
-        if any((data['first_name'], data['last_name'])):
-            data['name'] = u'{} {}'.format(data['first_name'], data['last_name']).strip()
-        else:
-            data['name'] = user_data.get('username')
+        data['username'] = user_data.get('user_login')
+        data['email'] = user_data.get('user_email')
+        data['name'] = user_data.get('display_name')
+        if not data['name']:
+            data['name'] = user_data.get('user_login')
         if not all((data['username'], data['email'])):
             raise AuthEntryError(
                 backend,
