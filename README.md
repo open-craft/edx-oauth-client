@@ -42,6 +42,14 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
     if FEATURES.get('ENABLE_THIRD_PARTY_AUTH'):
         CUSTOM_OAUTH_PARAMS = ENV_TOKENS.get('CUSTOM_OAUTH_PARAMS', {})
     ```
+ - Add in file `lms/envs/common.py`. It's preffered to place it somewhere at the top of the list
+     ```
+    INSTALLED_APPS = (
+    ...
+    'edx_oauth_client',
+    ...
+				)
+    ```
 
  - Add provider config in edX admin panel `/admin/third_party_auth/oauth2providerconfig/`
    - Enabled - **true**
@@ -71,7 +79,7 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
  - And add this code in the end of **functions.php** for your Wordpress theme
    
    This feature create multi-domain cookie cookie_name with the unique value for each user if user is logged in. And delete these cookie on logout.
-   ```
+      ```
    $auth_cookie_name = "authenticated";
 		 $domain_name = "<YOUR_DOMAIN>";
 		 
