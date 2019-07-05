@@ -91,7 +91,7 @@ class OAuthRedirection(object):
             'i18n', 'search', 'verify_student', 'certificates', 'jsi18n', 'course_modes', '404', '500', 'i18n.js',
             'wiki', 'notify', 'courses', 'xblock', 'change_setting', 'account', 'notification_prefs', 'admin',
             'survey', 'event', 'instructor_task_status', 'edinsights_service', 'openassessment', 'instructor_report',
-            'logout'
+            'logout', 'dashboard'
         )
 
         handle_local_urls += auth_process_urls + api_urls
@@ -101,8 +101,8 @@ class OAuthRedirection(object):
             debug_handle_local_urls = ('debug', settings.STATIC_URL, settings.MEDIA_URL)
             handle_local_urls += debug_handle_local_urls
 
-        if request.path in ("/dashboard/", "/dashboard"):
-            if is_auth and DASHBOARD_URL_PATH:
+        if DASHBOARD_URL_PATH and request.path in ("/dashboard/", "/dashboard"):
+            if is_auth:
                 return redirect(os.path.join(PROVIDER_URL, DASHBOARD_URL_PATH))
             else:
                 return redirect(PROVIDER_URL)
