@@ -34,12 +34,13 @@ class SeamlessAuthorization(object):
             if r.match(current_url):
                 return None
 
-        auth_cookie = request.COOKIES.get(self.cookie_name)
-        auth_cookie_portal = request.session.get(self.cookie_name)
+        auth_cookie = request.COOKIES.get(self.cookie_name, '0').lower()
+        auth_cookie_user = request.COOKIES.get('{}_user'.format(self.cookie_name))
+        auth_cookie = (auth_cookie in ('1', 'true', 'ok'))
         continue_url = reverse('{0}:complete'.format(NAMESPACE),
                                args=(backend,))
         is_auth = request.user.is_authenticated()
-        is_same_user = (auth_cookie == auth_cookie_portal)
+        is_same_user = (request.user.username == auth_cookie_user)
 
         # Check for infinity redirection loop
         is_continue = (continue_url in current_url)
