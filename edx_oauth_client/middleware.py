@@ -92,7 +92,7 @@ class OAuthRedirection(object):
             'i18n', 'search', 'verify_student', 'certificates', 'jsi18n', 'course_modes', '404', '500', 'i18n.js',
             'wiki', 'notify', 'courses', 'xblock', 'change_setting', 'account', 'notification_prefs', 'admin',
             'survey', 'event', 'instructor_task_status', 'edinsights_service', 'openassessment', 'instructor_report',
-            'logout', 'dashboard'
+            'logout', 'dashboard', 'course_run', 'change_enrollment', 'change_email_settings',
         )
 
         handle_local_urls += auth_process_urls + api_urls
