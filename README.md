@@ -6,7 +6,7 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
 
  - Install this client
    ```
-   pip install git+https://github.com/raccoongang/edx-oauth-client.git@hawthorn-master#egg=edx_oauth_client
+   pip install git+https://github.com/raccoongang/edx-oauth-client.git@ucdc-v.0.1.0#egg=edx_oauth_client==ucdc-v.0.1.0
    ```
 
  - Enable THIRD_PARTY_AUTH in edX
@@ -23,15 +23,17 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
     ...
     "CUSTOM_OAUTH_PARAMS": {
         "PROVIDER_URL": "https://example.com",
-        "AUTHORIZE_URL": "/oauth2/authorize",
-        "GET_TOKEN_URL": "/oauth2/access_token",
-        "PROVIDER_ID_KEY": "<unique identifier>",
-        "PROVIDER_NAME": "custom-oauth2",
-        "USER_DATA_URL": "/api/v0/users/me",
-        "COOKIE_NAME": "cookie_name", # If you're want seamless authorization
-        "COURSES_LIST_URL_PATH": "courses",  # write if course_list redirection is needed
-        "USER_ACCOUNT_URL_PATH": "account",  # write if user account redirection is needed
-        "DASHBOARD_URL_PATH": "user"  # write if dashboard redirection is needed
+        "AUTHORIZE_URL": "/o/authorize",
+        "GET_TOKEN_URL": "/o/token/",
+        "PROVIDER_ID_KEY": "<unique identifier>", # This should be attribute name. For example, `email`, `uid`, etc. Depends on that attributes which OAuth provider is able to handle and return to Edx as json payload data. Be aware: this is not provider's secret key. 
+        "PROVIDER_NAME": "ucdc_oauth2",
+        "USER_DATA_URL": "/user/current/",
+        "COOKIE_NAME": "cookie_name", # If you're want seamless authorization. Suggested name is `authenticated`.
+        "COOKIE_DOMAIN": "domain name", # Common domain name for portal and Edx platform. For example, we have two domains `ucdc.devstack.lms` and `edx.devstack.lms`. The common damain name for both is `devstack.lms`.
+        "COURSES_LIST_URL_PATH": "courses",  # write if course_list redirection is needed. From edx course list to ucdc portal course list. Leave it as blank if you want to avoid the redirection.
+        "USER_ACCOUNT_URL_PATH": "account",  # write if user account redirection is needed. From edx account page to ucdc portal account page. Leave it as blank if you want to avoid the redirection.
+        "DASHBOARD_URL_PATH": "dashboard"  # write if dashboard redirection is needed. From edx dasboard page to ucdc portal dasboard page. Leave it as blank if you want to avoid the redirection.
+        "LOGOUT_URL_PATH": "logout" # ucdc portal logout url. By default `logout`. This is necessary so that when logout of the Edx there is a transition to the logout of the portal.
     },
     
     "THIRD_PARTY_AUTH_BACKENDS":["edx_oauth_client.backends.generic_oauth_client.GenericOAuthBackend"],
@@ -45,13 +47,13 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
 
  - Add provider config in edX admin panel /admin/third_party_auth/oauth2providerconfig/
    - Enabled - **true**
-   - backend-name - **custom-oauth2**
+   - backend-name - **ucdc_oauth2**
    - Skip registration form - **true**
    - Skip email verification - **true**
+   - Visible - **true**
    - Client ID from Provider Admin OAuth Tab
    - Client Secret from Provider Admin OAuth Tab
-   - Make it visible ? + link on Edx
-   - name slug should be the same as provider name ? temp
+   - name - **ucdc_oauth2**
 
  - If you're want seamless authorization add middleware classes for
  SeamlessAuthorization (crossdomain cookie support needed).

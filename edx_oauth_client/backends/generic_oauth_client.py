@@ -28,6 +28,10 @@ DEFAULT_AUTH_PIPELINE = [
 ]
 
 
+class UserIdKeyIsMissed(Exception):
+    pass
+
+
 class GenericOAuthBackend(BaseOAuth2):
     """
     Backend for Generic OAuth Server Authorization.
@@ -124,5 +128,7 @@ class GenericOAuthBackend(BaseOAuth2):
             id_key = response.get(self.ID_KEY)
 
         if not id_key:
-            log.error("ID_KEY is not found in the User data response. SSO won't work correctly")
+            msg = "ID_KEY is not found in the User data response. SSO won't work correctly. ID_KEY: %s" % self.ID_KEY
+            raise UserIdKeyIsMissed(msg)
+
         return id_key
