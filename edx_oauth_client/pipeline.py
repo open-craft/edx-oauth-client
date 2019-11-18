@@ -84,7 +84,6 @@ def ensure_user_information(
                 data=data,
                 extra_fields={},
                 extended_profile_fields={},
-                enforce_password_policy=False,
                 tos_required=False,
             )
 
