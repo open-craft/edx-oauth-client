@@ -30,6 +30,16 @@ class SeamlessAuthorization(object):
         """
         Delete cross-domain cookie of SSO flow to accomplish logout.
         """
+
+        current_url = request.get_full_path()
+
+        # SeamlessAuthorization doesn't work for Django administration
+        # Returns response without removing cookies, for avoiding errors with Django admin use cases
+        if hasattr(settings, "SOCIAL_AUTH_EXCLUDE_URL_PATTERN"):
+            r = re.compile(settings.SOCIAL_AUTH_EXCLUDE_URL_PATTERN)
+            if r.match(current_url):
+                return response
+
         if not request.session.get(self.cookie_name) and self.cookie_domain:
             response.set_cookie(
                 self.cookie_name,
