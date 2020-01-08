@@ -31,7 +31,8 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
         "COOKIE_NAME": "authenticated", # If you're want seamless authorization
         "COURSES_LIST_URL_PATH": "courses",  # write if course_list redirection is needed
         "USER_ACCOUNT_URL_PATH": "account",  # write if user account redirection is needed
-        "DASHBOARD_URL_PATH": "user"  # write if dashboard redirection is needed
+        "DASHBOARD_URL_PATH": "user",  # write if dashboard redirection is needed
+        "LOCAL_URLS_DISABLED_FOR_REDIRECTION": ["custom_url",] # write if this URL ('/custom_url/*') redirecton isn't needed
     },
     
     "THIRD_PARTY_AUTH_BACKENDS":["edx_oauth_client.backends.generic_oauth_client.GenericOAuthBackend"],
