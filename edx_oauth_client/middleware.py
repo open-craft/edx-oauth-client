@@ -1,11 +1,20 @@
 import re
 import os.path
 
-from django.conf import settings
+from django.conf import settings as django_settings
 from django.core.urlresolvers import reverse
 from django.contrib.auth import REDIRECT_FIELD_NAME, logout
 from django.shortcuts import redirect
 from edx_oauth_client.backends.generic_oauth_client import GenericOAuthBackend
+from edx_oauth_client.settings import (
+    auth_process_urls,
+    api_urls,
+    COURSES_LIST_URL_PATH,
+    DASHBOARD_URL_PATH,
+    DISABLED_FOR_REDIRECTION_URLS,
+    PROVIDER_URL,
+    USER_ACCOUNT_URL_PATH,
+)
 
 from social_django.views import auth, NAMESPACE
 
@@ -29,8 +38,8 @@ class SeamlessAuthorization(object):
         current_url = request.get_full_path()
 
         # SeamlessAuthorization doesn't work for Django administration
-        if hasattr(settings, 'SOCIAL_AUTH_EXCLUDE_URL_PATTERN'):
-            r = re.compile(settings.SOCIAL_AUTH_EXCLUDE_URL_PATTERN)
+        if hasattr(django_settings, 'SOCIAL_AUTH_EXCLUDE_URL_PATTERN'):
+            r = re.compile(django_settings.SOCIAL_AUTH_EXCLUDE_URL_PATTERN)
             if r.match(current_url):
                 return None
 
@@ -70,37 +79,13 @@ class OAuthRedirection(object):
         """
         Redirect to PLP for pages that have duplicated functionality on PLP.
         """
-        CUSTOM_OAUTH_PARAMS = settings.CUSTOM_OAUTH_PARAMS if hasattr(settings, 'CUSTOM_OAUTH_PARAMS') else {}
-        PROVIDER_URL = CUSTOM_OAUTH_PARAMS.get("PROVIDER_URL", "")
-
-        COURSES_LIST_URL_PATH = CUSTOM_OAUTH_PARAMS.get("COURSES_LIST_URL_PATH")
-        USER_ACCOUNT_URL_PATH = CUSTOM_OAUTH_PARAMS.get("USER_ACCOUNT_URL_PATH")
-        DASHBOARD_URL_PATH = CUSTOM_OAUTH_PARAMS.get("DASHBOARD_URL_PATH")
-
         current_url = request.get_full_path()
         if current_url:
             start_url = current_url.split('?')[0].split('/')[1]
         else:
             start_url = ''
 
-        auth_process_urls = ('oauth2', 'auth', 'login_oauth_token', 'social-logout')
-        api_urls = (
-            'certificates', 'api', 'user_api', 'notifier_api', 'update_example_certificate', 'update_certificate',
-            'request_certificate',)
-
-        handle_local_urls = (
-            'i18n', 'search', 'verify_student', 'certificates', 'jsi18n', 'course_modes', '404', '500', 'i18n.js',
-            'wiki', 'notify', 'courses', 'xblock', 'change_setting', 'account', 'notification_prefs', 'admin',
-            'survey', 'event', 'instructor_task_status', 'edinsights_service', 'openassessment', 'instructor_report',
-            'logout', 'dashboard', 'course_run', 'change_enrollment', 'change_email_settings',
-        )
-
-        handle_local_urls += auth_process_urls + api_urls
         is_auth = request.user.is_authenticated()
-
-        if settings.DEBUG:
-            debug_handle_local_urls = ('debug', settings.STATIC_URL, settings.MEDIA_URL)
-            handle_local_urls += debug_handle_local_urls
 
         if DASHBOARD_URL_PATH and request.path in ("/dashboard/", "/dashboard"):
             if is_auth:
@@ -115,7 +100,7 @@ class OAuthRedirection(object):
             )
 
         is_courses_list_or_about_page = False
-        r = re.compile(r'^/courses/%s/about' % settings.COURSE_ID_PATTERN)
+        r = re.compile(r'^/courses/%s/about' % django_settings.COURSE_ID_PATTERN)
 
         if r.match(current_url):
             is_courses_list_or_about_page = True
@@ -129,8 +114,8 @@ class OAuthRedirection(object):
             else:
                 return redirect(PROVIDER_URL)
 
-        if start_url not in handle_local_urls or is_courses_list_or_about_page:
-            if start_url.split('?')[0] not in handle_local_urls:
+        if start_url not in DISABLED_FOR_REDIRECTION_URLS or is_courses_list_or_about_page:
+            if start_url.split('?')[0] not in DISABLED_FOR_REDIRECTION_URLS:
                 provider_url = PROVIDER_URL.rstrip("/") + "/"
                 return redirect("%s%s" % (provider_url, current_url))
 
