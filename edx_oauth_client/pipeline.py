@@ -31,11 +31,12 @@ AUTH_ENTRY_REGISTER_API = 'register_api'
 
 @partial.partial
 def ensure_user_information(
-        strategy, auth_entry, backend=None, user=None, social=None,
-        allow_inactive_user=False, *args, **kwargs):
+        strategy, auth_entry, backend=None, user=None, social=None, allow_inactive_user=False, *args, **kwargs
+):
     """
-    Ensure that we have the necessary information about a user (either an
-    existing account or registration data) to proceed with the pipeline.
+    Ensure that we have the necessary information about a user to proceed with the pipeline.
+
+    Either an existing account or registration data.
     """
 
     response = {}
@@ -53,16 +54,16 @@ def ensure_user_information(
         data['username'] = user_data.get('username', user_data.get('name', slugify(user_data['email'])))
         data['first_name'] = user_data.get('firstname')
         data['last_name'] = user_data.get('lastname')
-        data['email'] = user_data['email']
-        data['country'] = country = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
+        data['email'] = user_data.get('email')
+        data['country'] = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
         data['access_token'] = access_token
-        if data['first_name'] or data['last_name']:
-            data['name'] = data['first_name'] + " " + data['last_name']
+        if any((data['first_name'], data['last_name'])):
+            data['name'] = u'{} {}'.format(data['first_name'], data['last_name']).strip()
         else:
             data['name'] = user_data.get('preferred_username')
     except Exception as e:
-        log.error('Exception %s', e)
-        raise AuthEntryError(backend, 'can\' get user data.')
+        log.exception(e)
+        raise AuthEntryError(backend, "Cannot receive user's data")
 
     def dispatch_to_register():
         """Force user creation on login or register"""
