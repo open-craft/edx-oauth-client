@@ -10,7 +10,7 @@ with open('requirements.txt', 'r') as f:
 
 setup(
     name='edx-oauth-client',
-    version='ucdc-v.0.1.0',
+    version='ucdc-v.0.1.2',
     description='Client OAuth2 from edX installations',
     author='edX',
     url='https://github.com/raccoongang/edx_oauth_client',

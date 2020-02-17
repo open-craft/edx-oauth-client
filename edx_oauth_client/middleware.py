@@ -134,3 +134,7 @@ class OAuthRedirection(object):
                 return redirect(urljoin(provider_url, user_account_url_path))
         elif start_url_path not in (API_URLS + OAUTH_PROCESS_URLS):
             request.session["force_auth"] = True
+
+        # Custom redirect from edX index page to the portal index page
+        if request.path == "/":
+            return redirect(provider_url)
