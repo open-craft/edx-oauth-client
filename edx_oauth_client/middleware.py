@@ -1,12 +1,13 @@
-import re
 import os.path
+import re
+from urlparse import urljoin
 
 from django.conf import settings
-from django.core.urlresolvers import reverse
 from django.contrib.auth import REDIRECT_FIELD_NAME, logout
+from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 
-from social.apps.django_app.views import auth, NAMESPACE
+from social.apps.django_app.views import NAMESPACE, auth
 
 try:
     from opaque_keys.edx.keys import CourseKey
@@ -40,6 +41,12 @@ class SeamlessAuthorization(object):
         is_auth = request.user.is_authenticated()
 
         is_same_user = (request.user.username == auth_cookie_user)
+
+        OAUTH_PROVIDER_URL = settings.FEATURES.get("OAUTH_PROVIDER_URL", "")
+
+        if reverse("logout") == current_url:
+            logout(request)
+            return redirect(urljoin(OAUTH_PROVIDER_URL, '/logout'))
 
         # Check for infinity redirection loop
         is_continue = (continue_url in current_url)
