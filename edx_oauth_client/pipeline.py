@@ -1,20 +1,17 @@
-from django.http import HttpResponseBadRequest, HttpResponse
+import logging
+from md5 import md5
+
 from django.contrib.auth.models import User
+from django.http import HttpResponseBadRequest
 from django.template.defaultfilters import slugify
 
 from social.pipeline import partial
-from django_countries import countries
 
 from student.views import create_account_with_params, reactivation_email_for_user
 from student.models import UserProfile
-from third_party_auth.pipeline import (
-    make_random_password, AuthEntryError
-)
+from third_party_auth.pipeline import AuthEntryError, make_random_password
 
-from md5 import md5
-from logging import getLogger
-
-log = getLogger(__name__)
+log = logging.getLogger(__name__)
 
 # The following are various possible values for the AUTH_ENTRY_KEY.
 AUTH_ENTRY_LOGIN = 'login'
@@ -46,31 +43,34 @@ def ensure_user_information(
             user_data = kwargs['response']['data'][0]
         else:
             user_data = kwargs['response']
-        log.info('Get user data: %s', str(user_data))
-        access_token = kwargs['response']['access_token']
 
-        country = user_data.get('country')
-        data['username'] = user_data.get('username', user_data.get('name', slugify(user_data['email'])))
-        data['first_name'] = user_data.get('firstname')
-        data['last_name'] = user_data.get('lastname')
-        data['email'] = user_data['email']
-        data['country'] = country = dict(map(lambda x: (x[1], x[0]), countries)).get(country, country)
-        data['access_token'] = access_token
-        if data['first_name'] or data['last_name']:
-            data['name'] = data['first_name'] + " " + data['last_name']
+        log.info('Get user data: %s', str(user_data))
+        data['access_token'] = kwargs['response']['access_token']
+
+        for key, value in backend.setting('USER_DATA_KEY_VALUES').items():
+            data[key] = user_data.get(value)
+
+        # EFH related
+        if 'username' not in data or not data['username']:
+            data['username'] = data.get('name', slugify(data['email']))
+
+        if any((data['first_name'], data['last_name'])):
+            data['name'] = u'{} {}'.format(data['first_name'], data['last_name']).strip()
         else:
             data['name'] = user_data.get('preferred_username')
     except Exception as e:
         log.error('Exception %s', e)
-        raise AuthEntryError(backend, 'can\' get user data.')
+        raise AuthEntryError(backend, "can't get user data.")
 
     def dispatch_to_register():
         """Force user creation on login or register"""
 
         request = strategy.request
-        data['terms_of_service'] = "True"
-        data['honor_code'] = 'True'
-        data['password'] = make_random_password()
+        data.update({
+            'terms_of_service': True,
+            'honor_code': True,
+            'password': make_random_password()
+        })
 
         if request.session.get('ExternalAuthMap'):
             del request.session['ExternalAuthMap']
