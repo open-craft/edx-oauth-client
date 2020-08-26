@@ -141,9 +141,17 @@ class GenericOAuthBackend(BaseOAuth2):
         """Completes login process, must return user instance"""
         state = self.validate_state()
         self.process_error(self.data)
+
+        data, params = None, None
+        if self.setting("ACCESS_TOKEN_METHOD", "POST") == "GET":
+            params = self.auth_complete_params(state)
+        else:
+            data = self.auth_complete_params(state)
+
         response = self.request_access_token(
             self.access_token_url(),
-            data=self.auth_complete_params(state),
+            data=data,
+            params=params,
             headers=self.auth_headers(),
             method=self.setting("ACCESS_TOKEN_METHOD", "POST")
         )

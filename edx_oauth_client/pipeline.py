@@ -67,8 +67,8 @@ def ensure_user_information(
 
         request = strategy.request
         data.update({
-            'terms_of_service': True,
-            'honor_code': True,
+            'terms_of_service': 'True',
+            'honor_code': 'True',
             'password': make_random_password()
         })
 
