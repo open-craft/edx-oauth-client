@@ -50,7 +50,6 @@ def ensure_user_information(
         for key, value in backend.setting('USER_DATA_KEY_VALUES').items():
             data[key] = user_data.get(value)
 
-        # EFH related
         if 'username' not in data or not data['username']:
             data['username'] = data.get('name', slugify(data['email']))
 

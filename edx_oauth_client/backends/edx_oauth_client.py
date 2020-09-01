@@ -52,10 +52,6 @@ class GenericOAuthBackend(BaseOAuth2):
         Django settings lookup.
 
         OAuthAuth subclasses will call this method for every setting they want to look up.
-        SAMLAuthBackend subclasses will call this method only after first checking if the
-            setting 'name' is configured via SAMLProviderConfig.
-        LTIAuthBackend subclasses will call this method only after first checking if the
-            setting 'name' is configured via LTIProviderConfig.
         """
 
         provider_config = third_party_auth.models.OAuth2ProviderConfig.objects.filter(
@@ -93,12 +89,30 @@ class GenericOAuthBackend(BaseOAuth2):
         return DjangoStrategy(self).setting(name, default, backend)
 
     def get_user_details(self, response):
-        """ Return user details from SSO account. """
+        """Return user details from SSO account."""
         return response
 
     def user_data(self, access_token, *args, **kwargs):
-        """ Grab user profile information from SSO. """
-        data = self.get_json(self.setting('USER_DATA_URL'), params={'access_token': access_token}, method='POST')
+        """
+        Grab user profile information from SSO.
+        """
+
+        params, headers = None, None
+
+        if self.setting("USER_DATA_REQUEST_METHOD", "GET") == "GET":
+            headers = {'Authorization': 'Bearer {}'.format(access_token)}
+        else:
+            params = {'access_token': access_token}
+
+        data = self.request_access_token(
+            self.setting('USER_DATA_URL'),
+            params=params,
+            headers=headers,
+            method=self.setting("USER_DATA_REQUEST_METHOD", "GET")
+        )
+
+        if isinstance(data, list):
+            data = data[0]
 
         if data.get('success') and 'user' in data:
             data = data['user']
@@ -117,18 +131,20 @@ class GenericOAuthBackend(BaseOAuth2):
         )
 
     def get_user_id(self, details, response):
-        """Return a unique ID for the current user, by default from server
-        response."""
+        """
+        Return a unique ID for the current user, by default from server response.
+        """
         if 'data' in response:
             return response['data'][0].get(self.setting("ID_KEY"))
 
         return response.get(self.setting("ID_KEY"))
 
-    # Method can be removed if SSO realization is simple.
     def auth_complete_params(self, state=None):
+        """
+        Update auth complete params from custom oauth provider needs.
+        """
         res = super(GenericOAuthBackend, self).auth_complete_params(state)
 
-        # CUSTOM FOR EFH, IN DEFAULT REALIZATION COULD BE OMITTED.
         res.update({
             'id': res.get('client_id'),
             'secret': res.get('client_secret'),
@@ -138,7 +154,9 @@ class GenericOAuthBackend(BaseOAuth2):
 
     @handle_http_errors
     def auth_complete(self, *args, **kwargs):
-        """Completes login process, must return user instance"""
+        """
+        Completes login process, must return user instance
+        """
         state = self.validate_state()
         self.process_error(self.data)
 
@@ -158,7 +176,6 @@ class GenericOAuthBackend(BaseOAuth2):
         self.process_error(response)
         access_token = response['access_token']
 
-        # EFH RELATED PART CAN BE DELETED IN DEFAULT REALIZATION
         if type(access_token) not in (str, unicode) and 'value' in access_token:
             access_token = access_token['value']
 
