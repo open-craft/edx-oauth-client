@@ -51,9 +51,9 @@ class GenericOAuthBackend(BaseOAuth2):
         Load the setting from a ConfigurationModel if possible, or fall back to the normal
         Django settings lookup.
 
-        OAuthAuth subclasses will call this method for every setting they want to look up.
+        OAuthAuth subclasses will call this method for every setting they want to lookup.
         """
-
+        # Gets the latest actual provider config.
         provider_config = third_party_auth.models.OAuth2ProviderConfig.objects.filter(
             backend_name=self.name,
             site=Site.objects.get_current(get_current_request()),
@@ -85,11 +85,13 @@ class GenericOAuthBackend(BaseOAuth2):
                     return provider_config.max_session_length
 
         # At this point, we know 'name' is not set in a [OAuth2|LTI|SAML]ProviderConfig row.
-        # It's probably a global Django setting like 'FIELDS_STORED_IN_SESSION':
+        # It's a global Django setting like 'FIELDS_STORED_IN_SESSION':
         return DjangoStrategy(self).setting(name, default, backend)
 
     def get_user_details(self, response):
-        """Return user details from SSO account."""
+        """
+        Return user details from SSO account.
+        """
         return response
 
     def user_data(self, access_token, *args, **kwargs):

@@ -57,9 +57,18 @@ def ensure_user_information(
             data['name'] = u'{} {}'.format(data['first_name'], data['last_name']).strip()
         else:
             data['name'] = user_data.get('preferred_username')
+
+        if not all((data['username'], data['email'])):
+            raise AuthEntryError(
+                backend,
+                'One of the required parameters (username or email) is not received with the user data.'
+            )
+    except AuthEntryError as e:
+        log.exception(e)
+        raise
     except Exception as e:
-        log.error('Exception %s', e)
-        raise AuthEntryError(backend, "can't get user data.")
+        log.exception(e)
+        raise AuthEntryError(backend, 'Cannot receive user\'s data')
 
     def dispatch_to_register():
         """Force user creation on login or register"""
