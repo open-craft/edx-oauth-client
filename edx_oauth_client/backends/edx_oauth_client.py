@@ -25,7 +25,6 @@ DEFAULT_AUTH_PIPELINE = [
     'social.pipeline.social_auth.associate_user',
     'social.pipeline.social_auth.load_extra_data',
     'social.pipeline.user.user_details',
-    'third_party_auth.pipeline.set_logged_in_cookies',
     'third_party_auth.pipeline.login_analytics'
 ]
 
@@ -34,7 +33,7 @@ class GenericOAuthBackend(BaseOAuth2):
     """
     Backend for Edx OAuth Server Authorization.
     """
-    name = 'edx-oauth2'
+    name = "edx-oauth2"
     skip_email_verification = True
 
     PIPELINE = DEFAULT_AUTH_PIPELINE
@@ -48,12 +47,10 @@ class GenericOAuthBackend(BaseOAuth2):
 
     def setting(self, name, default=None, backend=None):
         """
-        Load the setting from a ConfigurationModel if possible, or fall back to the normal
-        Django settings lookup.
-
-        OAuthAuth subclasses will call this method for every setting they want to lookup.
+        Load the setting from a ConfigurationModel if possible, or fall back to the normal Django settings lookup.
         """
-        # Gets the latest actual provider config.
+
+        # Get the latest actual provider config.
         provider_config = third_party_auth.models.OAuth2ProviderConfig.objects.filter(
             backend_name=self.name,
             site=Site.objects.get_current(get_current_request()),
@@ -67,25 +64,6 @@ class GenericOAuthBackend(BaseOAuth2):
         except KeyError:
             pass
 
-        # Special case handling of login error URL if we're using a custom auth entry point:
-        if name == 'LOGIN_ERROR_URL':
-            auth_entry = self.request.session.get('auth_entry')
-            if auth_entry and auth_entry in third_party_auth.pipeline.AUTH_ENTRY_CUSTOM:
-                error_url = third_party_auth.pipeline.AUTH_ENTRY_CUSTOM[auth_entry].get('error_url')
-                if error_url:
-                    return error_url
-
-        # Special case: we want to get this particular setting directly from the provider database
-        # entry if possible; if we don't have the information, fall back to the default behavior.
-        if name == 'MAX_SESSION_LENGTH':
-            running_pipeline = third_party_auth.pipeline.get(self.request) if self.request else None
-            if running_pipeline is not None:
-                provider_config = third_party_auth.provider.Registry.get_from_pipeline(running_pipeline)
-                if provider_config:
-                    return provider_config.max_session_length
-
-        # At this point, we know 'name' is not set in a [OAuth2|LTI|SAML]ProviderConfig row.
-        # It's a global Django setting like 'FIELDS_STORED_IN_SESSION':
         return DjangoStrategy(self).setting(name, default, backend)
 
     def get_user_details(self, response):
@@ -102,12 +80,12 @@ class GenericOAuthBackend(BaseOAuth2):
         params, headers = None, None
 
         if self.setting("USER_DATA_REQUEST_METHOD", "GET") == "GET":
-            headers = {'Authorization': 'Bearer {}'.format(access_token)}
+            headers = {"Authorization": "Bearer {}".format(access_token)}
         else:
-            params = {'access_token': access_token}
+            params = {"access_token": access_token}
 
         data = self.request_access_token(
-            self.setting('USER_DATA_URL'),
+            self.setting("USER_DATA_URL"),
             params=params,
             headers=headers,
             method=self.setting("USER_DATA_REQUEST_METHOD", "GET")
@@ -116,51 +94,40 @@ class GenericOAuthBackend(BaseOAuth2):
         if isinstance(data, list):
             data = data[0]
 
-        if data.get('success') and 'user' in data:
-            data = data['user']
-        elif 'data' in data:
-            data = data['data']
+        if data.get("success") and "user" in data:
+            data = data["user"]
+        elif "data" in data:
+            data = data["data"]
 
-        data['access_token'] = access_token
-        data.pop('password', None)
+        data["access_token"] = access_token
+        data.pop("password", None)
 
         return data
 
     def pipeline(self, pipeline, pipeline_index=0, *args, **kwargs):
-        self.strategy.session.setdefault('auth_entry', 'register')
-        return super(GenericOAuthBackend, self).pipeline(
-            pipeline=self.PIPELINE, *args, **kwargs
-        )
+        """
+        Set to session auth entry value.
+        """
+        self.strategy.session.setdefault("auth_entry", "register")
+        return super(GenericOAuthBackend, self).pipeline(pipeline=self.PIPELINE, *args, **kwargs)
 
     def get_user_id(self, details, response):
         """
         Return a unique ID for the current user, by default from server response.
         """
-        if 'data' in response:
-            return response['data'][0].get(self.setting("ID_KEY"))
+        if "data" in response:
+            return response["data"][0].get(self.setting("ID_KEY"))
 
         return response.get(self.setting("ID_KEY"))
-
-    def auth_complete_params(self, state=None):
-        """
-        Update auth complete params from custom oauth provider needs.
-        """
-        res = super(GenericOAuthBackend, self).auth_complete_params(state)
-
-        res.update({
-            'id': res.get('client_id'),
-            'secret': res.get('client_secret'),
-        })
-
-        return res
 
     @handle_http_errors
     def auth_complete(self, *args, **kwargs):
         """
-        Completes login process, must return user instance
+        Completes login process, must return user instance.
         """
-        state = self.validate_state()
+
         self.process_error(self.data)
+        state = self.validate_state()
 
         data, params = None, None
         if self.setting("ACCESS_TOKEN_METHOD", "POST") == "GET":
@@ -173,12 +140,9 @@ class GenericOAuthBackend(BaseOAuth2):
             data=data,
             params=params,
             headers=self.auth_headers(),
+            auth=self.auth_complete_credentials(),
             method=self.setting("ACCESS_TOKEN_METHOD", "POST")
         )
         self.process_error(response)
-        access_token = response['access_token']
 
-        if type(access_token) not in (str, unicode) and 'value' in access_token:
-            access_token = access_token['value']
-
-        return self.do_auth(access_token, response=response, *args, **kwargs)
+        return self.do_auth(response["access_token"], response=response, *args, **kwargs)
