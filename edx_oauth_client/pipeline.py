@@ -6,9 +6,11 @@ from django.urls import reverse
 from social_core.pipeline import partial
 from third_party_auth.pipeline import AuthEntryError, is_api, get_complete_url
 
+from openedx.core.djangoapps.dark_lang import DARK_LANGUAGE_KEY
 from openedx.core.djangoapps.user_authn import cookies as user_authn_cookies
 from openedx.core.djangoapps.user_authn.views.registration_form import AccountCreationForm
 from openedx.core.djangoapps.user_authn.utils import generate_password
+from openedx.core.djangoapps.user_api.preferences.api import set_user_preference
 from student.helpers import do_create_account
 
 
@@ -45,6 +47,11 @@ def ensure_user_information(
 
         data['username'] = data['email']
 
+        if not data['name']:
+            data['name'] = ' '.join(
+                [user_data.get('lastname', ''), user_data.get('givenname', ''), user_data.get('middlename', '')]
+            )
+
         if kwargs.get('is_new') and not all((data['username'], data['email'])):
             raise AuthEntryError(
                 backend,
@@ -64,7 +71,7 @@ def ensure_user_information(
         data['provider'] = backend.name
 
         try:
-            user = User.objects.get(profile__edrpoucode=user_data.get('edrpoucode'))
+            user = User.objects.get(profile__drfocode=user_data.get('drfocode'))
         except User.DoesNotExist:
             form = AccountCreationForm(
                 data=data,
@@ -76,10 +83,12 @@ def ensure_user_information(
             (user, profile, registration) = do_create_account(form)
             user.is_active = True
             user.set_unusable_password()
-            user.profile.edrpoucode = user_data.get('edrpoucode')
+            user.profile.drfocode = user_data.get('drfocode')
             user.profile.second_name = user_data.get('middlename')
             user.profile.save()
             user.save()
+
+            set_user_preference(user, DARK_LANGUAGE_KEY, 'uk')
 
     return {'user': user}
 
