@@ -4,6 +4,8 @@ from logging import getLogger
 
 from student.forms import AccountCreationForm
 from django.contrib.auth.models import User
+from django.shortcuts import render_to_response, redirect
+from django.urls import reverse
 from social_core.pipeline import partial
 from openedx.core.djangoapps.user_api.accounts.utils import generate_password
 from student.helpers import (
@@ -100,14 +102,18 @@ def check_password_for_account_synchronization(
     strategy, auth_entry, backend=None, user=None, social=None, allow_inactive_user=False, *args, **kwargs
 ):
     """
+    Provides additional validation for the users whose wants to synchronize their accounts in two systems.
+
+    If the user try to authorize by the third party auth and has the same email in two systems asks
+    the user to confirm synchronization by filling in the password of the account in Open edX.
     """
 
-    user = User.objects.filter(email=kwargs['response']['email'])
+    request = kwargs.get('request')
+    user = User.objects.filter(email=kwargs['response']['email']).last()
 
-    if request.method == 'POST' and user.exists():
-        if user.last().check_password('edx'):
+    if request.method == 'POST' and user:
+        if user.check_password(request.POST.get('password')):
             request.session['is_valid'] = True
-            # TODO: Additional validation step here
 
             return strategy.redirect(
                 '{backend_url}?state={state}&code={code}'.format(
@@ -116,14 +122,18 @@ def check_password_for_account_synchronization(
                     code=request.POST.get('code'),
                 )
             )
+        else:
+            request.session['is_valid'] = False
 
     if social is None and user:
-        request = kwargs.get('request')
-        return render_to_response(
-            'check_password_for_account_synchronization.html',
-            {
-                'path': request.path,
-                'state': request.GET.get('state'),
-                'code': request.GET.get('code'),
-            }
-        )
+        if not request.session.get('is_valid'):
+            return render_to_response(
+                'check_password_for_account_synchronization.html',
+                {
+                    'path': request.path,
+                    'state': request.GET.get('state'),
+                    'code': request.GET.get('code'),
+                    'user': user,
+                    'error': request.session.get('is_valid') is False,
+                }
+            )

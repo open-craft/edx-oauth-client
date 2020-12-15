@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 DEFAULT_AUTH_PIPELINE = [
     'third_party_auth.pipeline.parse_query_params',
-    'social.pipeline.social_user',
+    'social.pipeline.social_auth.social_details',
     'social.pipeline.social_auth.social_uid',
     'social.pipeline.social_auth.auth_allowed',
     'social.pipeline.social_auth.social_user',
