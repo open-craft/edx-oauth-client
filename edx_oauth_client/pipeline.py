@@ -93,3 +93,37 @@ def ensure_user_information(
             user.save()
 
     return {'user': user}
+
+
+@partial.partial
+def check_password_for_account_synchronization(
+    strategy, auth_entry, backend=None, user=None, social=None, allow_inactive_user=False, *args, **kwargs
+):
+    """
+    """
+
+    user = User.objects.filter(email=kwargs['response']['email'])
+
+    if request.method == 'POST' and user.exists():
+        if user.last().check_password('edx'):
+            request.session['is_valid'] = True
+            # TODO: Additional validation step here
+
+            return strategy.redirect(
+                '{backend_url}?state={state}&code={code}'.format(
+                    backend_url=reverse('social:complete', args=(backend.name,)),
+                    state=request.POST.get('state'),
+                    code=request.POST.get('code'),
+                )
+            )
+
+    if social is None and user:
+        request = kwargs.get('request')
+        return render_to_response(
+            'check_password_for_account_synchronization.html',
+            {
+                'path': request.path,
+                'state': request.GET.get('state'),
+                'code': request.GET.get('code'),
+            }
+        )
