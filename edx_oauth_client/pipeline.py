@@ -4,13 +4,13 @@ from logging import getLogger
 
 from student.forms import AccountCreationForm
 from django.contrib.auth.models import User
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import redirect
 from django.urls import reverse
-from social_core.pipeline import partial
+
+from edxmako.shortcuts import render_to_response
 from openedx.core.djangoapps.user_api.accounts.utils import generate_password
-from student.helpers import (
-    do_create_account,
-)
+from social_core.pipeline import partial
+from student.helpers import do_create_account
 from third_party_auth.pipeline import AuthEntryError
 
 log = getLogger(__name__)
