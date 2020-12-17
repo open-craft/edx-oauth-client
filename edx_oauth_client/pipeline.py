@@ -133,7 +133,7 @@ def check_password_for_account_synchronization(
                     'path': request.path,
                     'state': request.GET.get('state'),
                     'code': request.GET.get('code'),
-                    'user': user,
+                    'existed_user': user,
                     'error': request.session.get('is_valid') is False,
                 }
             )

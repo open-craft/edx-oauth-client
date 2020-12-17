@@ -84,7 +84,7 @@ class GenericOAuthBackend(BaseOAuth2):
         """
         Finish the auth process once the access_token was retrieved.
         """
-        data = self.user_data(access_token)[0]
+        data = self.user_data(access_token)
         if data is not None and 'access_token' not in data:
             data['access_token'] = access_token
         kwargs.update({'response': data, 'backend': self})
