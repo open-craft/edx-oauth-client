@@ -4,11 +4,13 @@ from logging import getLogger
 
 from student.forms import AccountCreationForm
 from django.contrib.auth.models import User
-from social_core.pipeline import partial
+from django.shortcuts import redirect
+from django.urls import reverse
+
+from edxmako.shortcuts import render_to_response
 from openedx.core.djangoapps.user_api.accounts.utils import generate_password
-from student.helpers import (
-    do_create_account,
-)
+from social_core.pipeline import partial
+from student.helpers import do_create_account
 from third_party_auth.pipeline import AuthEntryError
 
 log = getLogger(__name__)
@@ -93,3 +95,45 @@ def ensure_user_information(
             user.save()
 
     return {'user': user}
+
+
+@partial.partial
+def check_password_for_account_synchronization(
+    strategy, auth_entry, backend=None, user=None, social=None, allow_inactive_user=False, *args, **kwargs
+):
+    """
+    Provides additional validation for the users whose wants to synchronize their accounts in two systems.
+
+    If the user try to authorize by the third party auth and has the same email in two systems asks
+    the user to confirm synchronization by filling in the password of the account in Open edX.
+    """
+
+    request = kwargs.get('request')
+    user = User.objects.filter(email=kwargs['response']['email']).last()
+
+    if request.method == 'POST' and user:
+        if user.check_password(request.POST.get('password')):
+            request.session['is_valid'] = True
+
+            return strategy.redirect(
+                '{backend_url}?state={state}&code={code}'.format(
+                    backend_url=reverse('social:complete', args=(backend.name,)),
+                    state=request.POST.get('state'),
+                    code=request.POST.get('code'),
+                )
+            )
+        else:
+            request.session['is_valid'] = False
+
+    if social is None and user:
+        if not request.session.get('is_valid'):
+            return render_to_response(
+                'check_password_for_account_synchronization.html',
+                {
+                    'path': request.path,
+                    'state': request.GET.get('state'),
+                    'code': request.GET.get('code'),
+                    'existed_user': user,
+                    'error': request.session.get('is_valid') is False,
+                }
+            )
