@@ -42,9 +42,7 @@ def ensure_user_information(
         for key, value in backend.setting('USER_DATA_KEY_VALUES').items():
             data[key] = user_data.get(value)
 
-        if not data['email']:
-            data['email'] = strategy.session_get('email', "")
-
+        data['email'] = strategy.session_get('email', "")
         data['username'] = data['email']
 
         if not data['name']:
@@ -105,7 +103,7 @@ def fill_in_email(
     """
     if kwargs.get('is_new'):
         request = kwargs.get('request')
-        email = strategy.request_data().get('email', strategy.session_get('email', None))
+        email = strategy.session_get('email', None)
 
         if not email:
             return render_to_response(
