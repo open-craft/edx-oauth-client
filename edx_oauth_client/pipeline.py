@@ -1,8 +1,14 @@
+"""
+edx-oauth-client custom pipelines.
+"""
+
 import logging
+import json
 
 from django.contrib.auth.models import User
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import redirect
 from django.urls import reverse
+from edxmako.shortcuts import render_to_response
 from social_core.pipeline import partial
 from third_party_auth.pipeline import AuthEntryError, is_api, get_complete_url
 
@@ -69,7 +75,7 @@ def ensure_user_information(
         data['provider'] = backend.name
 
         try:
-            user = User.objects.get(profile__drfocode=user_data.get('drfocode'))
+            user = User.objects.get(profile__meta__contains='"drfcode": {}'.format(user_data.get('drfocode')))
         except User.DoesNotExist:
             form = AccountCreationForm(
                 data=data,
@@ -81,8 +87,8 @@ def ensure_user_information(
             (user, profile, registration) = do_create_account(form)
             user.is_active = True
             user.set_unusable_password()
-            user.profile.drfocode = user_data.get('drfocode')
             user.profile.second_name = user_data.get('middlename')
+            user.profile.meta = json.dumps({"drfcode": user_data.get('drfocode')})
             user.profile.save()
             user.save()
 
