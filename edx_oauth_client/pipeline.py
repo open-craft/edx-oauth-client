@@ -20,7 +20,10 @@ def parse_user_information(
     data = {}
     if kwargs.get('request', {}).get('id_token'):
         user_data = get_user_data(kwargs['request']['id_token'])
-        data['username'] = user_data.get('email') # to avoid username with a suffix or hash string
+        log.debug('SSO Provider data - %s', user_data)
+        # username max_length was increased to be able to use the "sub" parameter as username.
+        # https://github.com/raccoongang/edx-platform/pull/2365
+        data['username'] = user_data.get('sub') # hash string
         data['first_name'] = user_data.get('given_name')
         data['last_name'] = user_data.get('family_name')
         data['email'] = user_data.get('email')
