@@ -109,7 +109,7 @@ def fill_in_email(
     """
     if kwargs.get('is_new'):
         request = kwargs.get('request')
-        email = strategy.session_get('email', None)
+        email = strategy.request_data().get('email', strategy.session_get('email', None))
 
         if not email:
             return render_to_response(
