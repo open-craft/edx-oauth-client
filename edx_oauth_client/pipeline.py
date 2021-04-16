@@ -118,63 +118,12 @@ def fill_in_email(
                     'path': request.path,
                     'state': request.GET.get('state'),
                     'code': request.GET.get('code'),
+                    'partial_token': request.GET.get('partial_token'),
                 }
             )
         else:
             if request.method == 'POST':
                 request.session['email'] = email
-                return strategy.redirect(
-                    '{backend_url}?state={state}&code={code}'.format(
-                        backend_url=reverse('social:complete', args=(backend.name,)),
-                        state=request.POST.get('state'),
-                        code=request.POST.get('code'),
-                    )
-                )
-
-
-@partial.partial
-def set_logged_in_cookies(backend=None, user=None, strategy=None, auth_entry=None, current_partial=None,
-                          *args, **kwargs):
-    """
-    This pipeline step sets the "logged in" cookie for authenticated users.
-
-    Some installations have a marketing site front-end separate from
-    edx-platform.  Those installations sometimes display different
-    information for logged in versus anonymous users (e.g. a link
-    to the student dashboard instead of the login page.)
-    Since social auth uses Django's native `login()` method, it bypasses
-    our usual login view that sets this cookie.  For this reason, we need
-    to set the cookie ourselves within the pipeline.
-    The procedure for doing this is a little strange.  On the one hand,
-    we need to send a response to the user in order to set the cookie.
-    On the other hand, we don't want to drop the user out of the pipeline.
-    For this reason, we send a redirect back to the "complete" URL,
-    so users immediately re-enter the pipeline.  The redirect response
-    contains a header that sets the logged in cookie.
-    If the user is not logged in, or the logged in cookie is already set,
-    the function returns `None`, indicating that control should pass
-    to the next pipeline step.
-    """
-    if not is_api(auth_entry) and user is not None and user.is_authenticated:
-        request = strategy.request if strategy else None
-        # n.b. for new users, user.is_active may be False at this point; set the cookie anyways.
-        if request is not None:
-            # Check that the cookie isn't already set.
-            # This ensures that we allow the user to continue to the next
-            # pipeline step once he/she has the cookie set by this step.
-            has_cookie = user_authn_cookies.are_logged_in_cookies_set(request)
-            if not has_cookie:
-                try:
-                    redirect_url = '{backend_url}?state={state}&code={code}'.format(
-                        backend_url=reverse('social:complete', args=(backend.name,)),
-                        state=kwargs['request'].GET.get('state'),
-                        code=kwargs['request'].GET.get('code'),
-                    )
-                except ValueError:
-                    # If for some reason we can't get the URL, just skip this step
-                    # This may be overly paranoid, but it's far more important that
-                    # the user log in successfully than that the cookie is set.
-                    pass
-                else:
-                    response = redirect(redirect_url)
-                    return user_authn_cookies.set_logged_in_cookies(request, response, user)
+                partial_token = request.POST.get('partial_token')
+                partial = strategy.partial_load(partial_token)
+                return {'partial_backend_name': partial.backend, 'partial_token': partial_token}
