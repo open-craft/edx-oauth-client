@@ -118,7 +118,7 @@ def fill_in_email(
                     'path': request.path,
                     'state': request.GET.get('state'),
                     'code': request.GET.get('code'),
-                    'partial_token': request.GET.get('partial_token'),
+                    'partial_token': kwargs.get('current_partial').token,
                 }
             )
         else:
