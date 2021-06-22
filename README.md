@@ -35,6 +35,7 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
    ```json
    {
      "ACCESS_TOKEN_METHOD": "POST",
+     "PROVIDER_URL": "<PROVIDER_URL>",
      "LOGIN_REDIRECT_URL": "<LOGIN_URL_ON_THE_PLATFORM>",
      "AUTHORIZATION_URL": "<AUTHORIZATION_URL>",
      "ID_KEY": "email",

@@ -1,20 +1,19 @@
 import logging
+from hashlib import md5
 
 from django.contrib.auth.models import User
-from social_core.pipeline import partial
-from third_party_auth.pipeline import AuthEntryError, is_api, get_complete_url
-
+from django.template.defaultfilters import slugify
 from openedx.core.djangoapps.user_authn.views.registration_form import AccountCreationForm
-from openedx.core.djangoapps.user_authn.utils import generate_password
+from social_core.pipeline import partial
 from student.helpers import do_create_account
-
+from third_party_auth.pipeline import AuthEntryError
 
 log = logging.getLogger(__name__)
 
 
 @partial.partial
 def ensure_user_information(
-        strategy, auth_entry, backend=None, user=None, social=None, allow_inactive_user=False, *args, **kwargs
+    strategy, auth_entry, backend=None, user=None, social=None, allow_inactive_user=False, *args, **kwargs
 ):
     """
     Ensure that we have the necessary information about a user to proceed with the pipeline.
@@ -36,10 +35,17 @@ def ensure_user_information(
         for key, value in backend.setting("USER_DATA_KEY_VALUES").items():
             data[key] = user_data.get(value)
 
+        if 'username' not in data or not data['username']:
+            data['username'] = data.get('name', slugify(data['email']))
+
+        if any((data['first_name'], data['last_name'])):
+            data['name'] = u'{} {}'.format(data['first_name'], data['last_name']).strip()
+        else:
+            data['name'] = user_data.get('preferred_username')
+
         if not all((data["username"], data["email"])):
             raise AuthEntryError(
-                backend,
-                "One of the required parameters (username or email) is not received with the user data."
+                backend, "One of the required parameters (username or email) is not received with the user data."
             )
     except AuthEntryError as e:
         log.exception(e)
@@ -49,18 +55,26 @@ def ensure_user_information(
         raise AuthEntryError(backend, "Cannot receive user's data")
 
     if not user:
-        data["terms_of_service"] = "True"
-        data["honor_code"] = "True"
-        data["password"] = generate_password()
-        data["provider"] = backend.name
+        data.update(
+            {
+                "terms_of_service": "True",
+                "honor_code": "True",
+                "provider": backend.name,
+            }
+        )
 
         try:
             user = User.objects.get(email=user_data.get("email"))
         except User.DoesNotExist:
+            # Generate a new username if the current one is taken.
+            if User.objects.filter(username=data['username']).exists():
+                data['username'] = '{}_{}'.format(data['username'], md5(data['email']).hexdigest()[:4])
+
             form = AccountCreationForm(
                 data=data,
                 extra_fields={},
                 extended_profile_fields={},
+                do_third_party_auth=True,
                 tos_required=False,
             )
 
