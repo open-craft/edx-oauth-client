@@ -32,7 +32,7 @@ def ensure_user_information(
 
         data["access_token"] = kwargs["response"]["access_token"]
 
-        for key, value in backend.setting("USER_DATA_KEY_VALUES").items():
+        for key, value in backend.get_setting("USER_DATA_KEY_VALUES", {}).items():
             data[key] = user_data.get(value)
 
         if 'username' not in data or not data['username']:

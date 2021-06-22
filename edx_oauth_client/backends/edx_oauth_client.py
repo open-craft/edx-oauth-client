@@ -39,17 +39,18 @@ class GenericOAuthBackend(BaseOAuth2):
     REDIRECT_STATE = False
     DEFAULT_SCOPE = global_settings.get("DEFAULT_SCOPE", ["api"])
 
-    def _get_setting(self, param: str, default=""):
+    def get_setting(self, param: str, default=""):
+        """TODO"""
         return self.global_settings.get(param, self.setting(param)) or default
 
     def _base_url(self):
-        return self._get_setting("PROVIDER_URL")
+        return self.get_setting("PROVIDER_URL")
 
     def authorization_url(self):
-        return f'{self._base_url()}{self._get_setting("AUTHORIZATION_URL")}'
+        return f'{self._base_url()}{self.get_setting("AUTHORIZATION_URL")}'
 
     def access_token_url(self):
-        return f'{self._base_url()}{self._get_setting("ACCESS_TOKEN_URL")}'
+        return f'{self._base_url()}{self.get_setting("ACCESS_TOKEN_URL")}'
 
     def setting(self, name, default=None, backend=None):
         """
@@ -82,16 +83,16 @@ class GenericOAuthBackend(BaseOAuth2):
 
         params, headers = None, None
 
-        if self._get_setting("USER_DATA_REQUEST_METHOD", "GET") == "GET":
+        if self.get_setting("USER_DATA_REQUEST_METHOD", "GET") == "GET":
             headers = {"Authorization": "Bearer {}".format(access_token)}
         else:
             params = {"access_token": access_token}
 
         data = self.request_access_token(
-            f'{self._base_url()}{self._get_setting("USER_DATA_URL")}',
+            f'{self._base_url()}{self.get_setting("USER_DATA_URL")}',
             params=params,
             headers=headers,
-            method=self._get_setting("USER_DATA_REQUEST_METHOD", "GET"),
+            method=self.get_setting("USER_DATA_REQUEST_METHOD", "GET"),
         )
 
         if isinstance(data, list):
@@ -119,9 +120,9 @@ class GenericOAuthBackend(BaseOAuth2):
         Return a unique ID for the current user, by default from server response.
         """
         if "data" in response:
-            return response["data"][0].get(self._get_setting("ID_KEY"))
+            return response["data"][0].get(self.get_setting("ID_KEY"))
 
-        return response.get(self._get_setting("ID_KEY"))
+        return response.get(self.get_setting("ID_KEY"))
 
     @handle_http_errors
     def auth_complete(self, *args, **kwargs):
@@ -133,7 +134,7 @@ class GenericOAuthBackend(BaseOAuth2):
         state = self.validate_state()
 
         data, params = None, None
-        if self._get_setting("ACCESS_TOKEN_METHOD", "POST") == "GET":
+        if self.get_setting("ACCESS_TOKEN_METHOD", "POST") == "GET":
             params = self.auth_complete_params(state)
         else:
             data = self.auth_complete_params(state)
@@ -144,7 +145,7 @@ class GenericOAuthBackend(BaseOAuth2):
             params=params,
             headers=self.auth_headers(),
             auth=self.auth_complete_credentials(),
-            method=self._get_setting("ACCESS_TOKEN_METHOD", "POST"),
+            method=self.get_setting("ACCESS_TOKEN_METHOD", "POST"),
         )
         self.process_error(response)
 
