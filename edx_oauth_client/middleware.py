@@ -1,10 +1,10 @@
 import logging
-from typing import Callable
+from typing import Callable, Dict
 from urllib.parse import urlparse
 
 from common.djangoapps import third_party_auth
 from django.conf import settings
-from django.contrib.auth import logout
+from django.contrib.auth import logout, REDIRECT_FIELD_NAME
 from django.contrib.auth.models import User
 from django.http import HttpRequest, HttpResponse
 from django.urls import reverse
@@ -32,14 +32,22 @@ def seamless_authorization(get_response: Callable[[HttpRequest], HttpResponse]):
             ignored_urls += LOCAL_URLS
         return start_url_path in ignored_urls
 
+    def prepare_redirection_query(request: HttpRequest) -> Dict[str, str]:
+        """TODO"""
+        query_dict = request.GET.copy()
+        query_dict[REDIRECT_FIELD_NAME] = request.get_full_path()
+        query_dict["auth_entry"] = "login"
+        return query_dict
+
     def middleware(request: HttpRequest) -> HttpResponse:
         request.user: User  # type: ignore
 
-        # Check for infinity redirection loop
+        # Check for infinite redirection loop
         continue_url = reverse("{0}:complete".format(NAMESPACE), args=(backend,))
         is_continue = continue_url in request.path
 
         if not (ignore_url(request) or request.user.is_authenticated or is_continue):
+            request.GET = prepare_redirection_query(request)
             logout(request)
             providers = [
                 p
@@ -51,7 +59,7 @@ def seamless_authorization(get_response: Callable[[HttpRequest], HttpResponse]):
             except IndexError:
                 response = get_response(request)
         else:
-            log.info(f"Ignoring URL:{request.path}")
+            log.info(f"Ignoring URL:{request.get_full_path()}")
 
             response = get_response(request)
         return response
