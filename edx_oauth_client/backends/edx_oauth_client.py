@@ -25,6 +25,7 @@ DEFAULT_AUTH_PIPELINE = [
     'common.djangoapps.third_party_auth.pipeline.login_analytics',
 ]
 
+
 class GenericOAuthBackend(BaseOAuth2):
     """
     Backend for Edx OAuth Server Authorization.

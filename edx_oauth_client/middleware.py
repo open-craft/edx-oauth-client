@@ -3,6 +3,7 @@ from typing import Callable
 from urllib.parse import urlparse
 
 from common.djangoapps import third_party_auth
+from django.conf import settings
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from django.http import HttpRequest, HttpResponse
@@ -24,8 +25,12 @@ def seamless_authorization(get_response: Callable[[HttpRequest], HttpResponse]):
     backend = GenericOAuthBackend.name
 
     def ignore_url(request: HttpRequest) -> bool:
+        """TODO"""
         start_url_path, _, _ = urlparse(request.path).path.strip("/").partition("/")
-        return start_url_path in (OAUTH_PROCESS_URLS + LOCAL_URLS + API_URLS)
+        ignored_urls = OAUTH_PROCESS_URLS + API_URLS
+        if settings.DEBUG:
+            ignored_urls += LOCAL_URLS
+        return start_url_path in ignored_urls
 
     def middleware(request: HttpRequest) -> HttpResponse:
         request.user: User  # type: ignore

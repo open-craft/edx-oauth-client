@@ -13,6 +13,7 @@ API_URLS = (
     "update_certificate",
     "request_certificate",
     "heartbeat",
+    "admin",
 )
 
 LOCAL_URLS = (
@@ -32,7 +33,6 @@ LOCAL_URLS = (
     "change_setting",
     "account",
     "notification_prefs",
-    "admin",
     "survey",
     "event",
     "instructor_task_status",
