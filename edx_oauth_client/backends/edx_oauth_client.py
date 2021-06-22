@@ -1,6 +1,6 @@
 import logging
 
-import third_party_auth
+from common.djangoapps import third_party_auth
 from django.conf import settings
 from social_core.backends.oauth import BaseOAuth2
 from social_core.utils import handle_http_errors
@@ -8,36 +8,36 @@ from social_core.utils import handle_http_errors
 log = logging.getLogger(__name__)
 
 DEFAULT_AUTH_PIPELINE = [
-    'third_party_auth.pipeline.parse_query_params',
-    'social.pipeline.social_auth.social_details',
-    'social.pipeline.social_auth.social_uid',
-    'social.pipeline.social_auth.auth_allowed',
-    'social.pipeline.social_auth.social_user',
-    'third_party_auth.pipeline.associate_by_email_if_login_api',
-    'social.pipeline.user.get_username',
-    'third_party_auth.pipeline.set_pipeline_timeout',
+    'common.djangoapps.third_party_auth.pipeline.parse_query_params',
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.auth_allowed',
+    'social_core.pipeline.social_auth.social_user',
+    'common.djangoapps.third_party_auth.pipeline.associate_user_by_email',
+    'common.djangoapps.third_party_auth.pipeline.get_username',
+    'common.djangoapps.third_party_auth.pipeline.set_pipeline_timeout',
     'edx_oauth_client.pipeline.ensure_user_information',
-    'social.pipeline.user.create_user',
-    'social.pipeline.social_auth.associate_user',
-    'social.pipeline.social_auth.load_extra_data',
-    'social.pipeline.user.user_details',
-    'third_party_auth.pipeline.set_logged_in_cookies',
-    'third_party_auth.pipeline.login_analytics',
+    'social_core.pipeline.user.create_user',
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details',
+    'common.djangoapps.third_party_auth.pipeline.set_logged_in_cookies',
+    'common.djangoapps.third_party_auth.pipeline.login_analytics',
 ]
-
 
 class GenericOAuthBackend(BaseOAuth2):
     """
     Backend for Edx OAuth Server Authorization.
     """
 
-    name = "edx-oauth2"
+    global_settings = getattr(settings, "CUSTOM_OAUTH_PARAMS", {})
+
+    name = global_settings.get("BACKEND_NAME", "edx-oauth2")
     skip_email_verification = True
 
     PIPELINE = DEFAULT_AUTH_PIPELINE
     REDIRECT_STATE = False
-
-    global_settings = getattr(settings, "CUSTOM_OAUTH_PARAMS", {})
+    DEFAULT_SCOPE = global_settings.get("DEFAULT_SCOPE", ["api"])
 
     def _get_setting(self, param: str, default=""):
         return self.global_settings.get(param, self.setting(param)) or default

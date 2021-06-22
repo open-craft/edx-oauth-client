@@ -2,7 +2,7 @@ import logging
 from typing import Callable
 from urllib.parse import urlparse
 
-import third_party_auth
+from common.djangoapps import third_party_auth
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from django.http import HttpRequest, HttpResponse

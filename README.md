@@ -34,6 +34,7 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
    - Other settings:
    ```json
    {
+     "BACKEND_NAME": "<CUSTOM NAME>",
      "ACCESS_TOKEN_METHOD": "POST",
      "PROVIDER_URL": "<PROVIDER_URL>",
      "LOGIN_REDIRECT_URL": "<LOGIN_URL_ON_THE_PLATFORM>",
@@ -48,7 +49,8 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
          "first_name": "FIRST_NAME_FROM_PROVIDER"
      },
     "ACCESS_TOKEN_URL": "<ACCESS_TOKEN_URL>",
-    "USER_DATA_URL": "<USER_DATA_URL>"
+    "USER_DATA_URL": "<USER_DATA_URL>",
+    "DEFAULT_SCOPE": ["scope"]
    }
    ```
 

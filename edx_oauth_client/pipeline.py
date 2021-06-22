@@ -1,12 +1,12 @@
 import logging
 from hashlib import md5
 
+from common.djangoapps.third_party_auth.pipeline import AuthEntryError
 from django.contrib.auth.models import User
 from django.template.defaultfilters import slugify
 from openedx.core.djangoapps.user_authn.views.registration_form import AccountCreationForm
 from social_core.pipeline import partial
 from student.helpers import do_create_account
-from third_party_auth.pipeline import AuthEntryError
 
 log = logging.getLogger(__name__)
 
