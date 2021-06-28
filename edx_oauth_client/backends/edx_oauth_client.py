@@ -31,7 +31,7 @@ class GenericOAuthBackend(BaseOAuth2):
     Backend for Edx OAuth Server Authorization.
     """
 
-    global_settings = getattr(settings, "CUSTOM_OAUTH_PARAMS", {})
+    global_settings = settings.FEATURES.get("CUSTOM_OAUTH_PARAMS", {})
 
     name = global_settings.get("BACKEND_NAME", "edx-oauth2")
     skip_email_verification = True
