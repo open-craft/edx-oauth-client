@@ -60,6 +60,7 @@ def ensure_user_information(
                 "terms_of_service": "True",
                 "honor_code": "True",
                 "provider": backend.name,
+                "password": User.objects.make_random_password(),
             }
         )
 
@@ -80,7 +81,6 @@ def ensure_user_information(
 
             (user, profile, registration) = do_create_account(form)
             user.is_active = True
-            user.set_unusable_password()
             user.save()
 
     return {"user": user}
