@@ -7,7 +7,8 @@ from django.conf import settings
 from django.contrib.auth import logout, REDIRECT_FIELD_NAME
 from django.contrib.auth.models import User
 from django.http import HttpRequest, HttpResponse
-from django.urls import reverse
+from django.shortcuts import redirect
+from django.urls import reverse, NoReverseMatch
 from social_django.views import auth, NAMESPACE
 
 from edx_oauth_client.backends.edx_oauth_client import GenericOAuthBackend
@@ -43,7 +44,14 @@ def seamless_authorization(get_response: Callable[[HttpRequest], HttpResponse]):
         request.user: User  # type: ignore
 
         # Check for infinite redirection loop
-        continue_url = reverse("{0}:complete".format(NAMESPACE), args=(backend,))
+        try:
+            continue_url = reverse("{0}:complete".format(NAMESPACE), args=(backend,))
+        except NoReverseMatch:
+            # Not in the LMS.
+            if not request.user.is_authenticated:
+                return redirect(settings.FRONTEND_LOGIN_URL)
+            continue_url = ''
+
         is_continue = continue_url in request.path
 
         if not (ignore_url(request) or request.user.is_authenticated or is_continue):
