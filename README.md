@@ -5,14 +5,14 @@ SSO Client for Drupal.
 Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
 
  - Install this client
-   ```
-   pip install -e git+https://github.com/raccoongang/edx-oauth-client.git@juniper-master#egg=edx_oauth_client
+   ```bash
+   pip install -e git+https://github.com/open-craft/edx-oauth-client.git@v2.0.0#egg=edx_oauth_client
    ```
 
  - Enable THIRD_PARTY_AUTH in edX
  
     In the `/edx/etc/lms.yml` file, edit the file so that it includes the following line in the features section. And add this backend.
-    ```
+    ```yaml
     ...
     FEATURES:
         ENABLE_COMBINED_LOGIN_REGISTRATION: true
@@ -24,7 +24,32 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
     - edx_oauth_client
     ```
 
- - Add provider config in edX admin panel `/admin/third_party_auth/oauth2providerconfig/`
+ - Add provider config
+ 
+    In the `/edx/etc/lms.yml` file, edit the file so that it includes the following line in the features section. And add this backend.
+    ```yaml
+    ...
+    FEATURES:
+      CUSTOM_OAUTH_PARAMS:
+         BACKEND_NAME: CUSTOM_NAME
+         PROVIDER_URL: https://example.com
+         ACCESS_TOKEN_URL: /oauth/token
+         AUTHORIZATION_URL: /oauth/authorize
+         USER_DATA_URL: /oauth/user
+         ID_KEY: id
+         DEFAULT_SCOPE:
+          - profile
+          - email
+         USER_DATA_KEY_VALUES:
+          username: username
+          name: name
+          first_name: first_name
+          last_name: last_name
+          email: email
+    ...
+    ```
+
+ - (Experimental) Add provider config in edX admin panel `/admin/third_party_auth/oauth2providerconfig/`
    - Enabled - **true**
    - backend-name - **edx-oauth2**
    - Skip registration form - **true**
@@ -34,9 +59,7 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
    - Other settings:
    ```json
    {
-     "BACKEND_NAME": "<CUSTOM NAME>",
      "ACCESS_TOKEN_METHOD": "POST",
-     "PROVIDER_URL": "<PROVIDER_URL>",
      "LOGIN_REDIRECT_URL": "<LOGIN_URL_ON_THE_PLATFORM>",
      "AUTHORIZATION_URL": "<AUTHORIZATION_URL>",
      "ID_KEY": "email",
@@ -49,12 +72,11 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
          "first_name": "FIRST_NAME_FROM_PROVIDER"
      },
     "ACCESS_TOKEN_URL": "<ACCESS_TOKEN_URL>",
-    "USER_DATA_URL": "<USER_DATA_URL>",
-    "DEFAULT_SCOPE": ["scope"]
+    "USER_DATA_URL": "<USER_DATA_URL>"
    }
    ```
 
- - If you're want seamless authorization add middleware classes for SeamlessAuthorization (crossdomain cookie support needed)
+ - If you want seamless authorization add middleware classes for SeamlessAuthorization (crossdomain cookie support needed)
    ```
    EXTRA_MIDDLEWARE_CLASSES: ["edx_oauth_client.middleware.SeamlessAuthorization",]
    ```

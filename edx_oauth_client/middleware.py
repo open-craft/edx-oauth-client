@@ -23,10 +23,11 @@ except ImportError:
 
 
 def seamless_authorization(get_response: Callable[[HttpRequest], HttpResponse]):
+    """A middleware for force authenticating users."""
     backend = GenericOAuthBackend.name
 
     def ignore_url(request: HttpRequest) -> bool:
-        """TODO"""
+        """Determine whether the request should bypass the forced authentication."""
         start_url_path, _, _ = urlparse(request.path).path.strip("/").partition("/")
         ignored_urls = OAUTH_PROCESS_URLS + API_URLS
         if settings.DEBUG:
@@ -34,7 +35,7 @@ def seamless_authorization(get_response: Callable[[HttpRequest], HttpResponse]):
         return start_url_path in ignored_urls
 
     def prepare_redirection_query(request: HttpRequest) -> Dict[str, str]:
-        """TODO"""
+        """Prepare a redirection reference for the SSO."""
         query_dict = request.GET.copy()
         query_dict[REDIRECT_FIELD_NAME] = request.get_full_path()
         query_dict["auth_entry"] = "login"
@@ -67,9 +68,9 @@ def seamless_authorization(get_response: Callable[[HttpRequest], HttpResponse]):
             except IndexError:
                 response = get_response(request)
         else:
-            log.info(f"Ignoring URL:{request.get_full_path()}")
-
+            log.debug(f"Ignoring URL:{request.get_full_path()}")
             response = get_response(request)
+
         return response
 
     return middleware

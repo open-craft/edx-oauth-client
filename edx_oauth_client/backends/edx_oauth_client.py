@@ -41,7 +41,9 @@ class GenericOAuthBackend(BaseOAuth2):
     DEFAULT_SCOPE = global_settings.get("DEFAULT_SCOPE", ["api"])
 
     def get_setting(self, param: str, default=""):
-        """TODO"""
+        """
+        Retrieve value from Django settings. If absent, search for it in the provider's configuration.
+        """
         return self.global_settings.get(param, self.setting(param)) or default
 
     def _base_url(self):
@@ -154,4 +156,9 @@ class GenericOAuthBackend(BaseOAuth2):
 
 
 class GenericOAuthBackend2(GenericOAuthBackend):
+    """
+    Subclass used for setting up a second provider. It is not possible to reuse a single backend in multi-site
+    environments anymore.
+    Ref: https://github.com/edx/edx-platform/pull/20070
+    """
     name = f"{GenericOAuthBackend.name}-2"
