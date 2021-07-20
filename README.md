@@ -15,13 +15,13 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
     ```yaml
     ...
     FEATURES:
-        ENABLE_COMBINED_LOGIN_REGISTRATION: true
-        ENABLE_THIRD_PARTY_AUTH: true
+      ENABLE_COMBINED_LOGIN_REGISTRATION: true
+      ENABLE_THIRD_PARTY_AUTH: true
     ...
     THIRD_PARTY_AUTH_BACKENDS:
-    - edx_oauth_client.backends.edx_oauth_client.GenericOAuthBackend
+      - edx_oauth_client.backends.edx_oauth_client.GenericOAuthBackend
     ADDL_INSTALLED_APPS:
-    - edx_oauth_client
+      - edx_oauth_client
     ```
 
  - Add provider config
