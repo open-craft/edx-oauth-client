@@ -31,16 +31,16 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
     ...
     FEATURES:
       CUSTOM_OAUTH_PARAMS:
-         BACKEND_NAME: CUSTOM_NAME
-         PROVIDER_URL: https://example.com
-         ACCESS_TOKEN_URL: /oauth/token
-         AUTHORIZATION_URL: /oauth/authorize
-         USER_DATA_URL: /oauth/user
-         ID_KEY: id
-         DEFAULT_SCOPE:
+        BACKEND_NAME: CUSTOM_NAME
+        PROVIDER_URL: https://example.com
+        ACCESS_TOKEN_URL: /oauth/token
+        AUTHORIZATION_URL: /oauth/authorize
+        USER_DATA_URL: /oauth/user
+        ID_KEY: id
+        DEFAULT_SCOPE:
           - profile
           - email
-         USER_DATA_KEY_VALUES:
+        USER_DATA_KEY_VALUES:
           username: username
           name: name
           first_name: first_name
