@@ -76,9 +76,9 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
    }
    ```
 
- - If you want seamless authorization add middleware classes for SeamlessAuthorization (crossdomain cookie support needed)
+ - If you want seamless authorization add the `seamless_authorization` middleware (crossdomain cookie support needed)
    ```
-   EXTRA_MIDDLEWARE_CLASSES: ["edx_oauth_client.middleware.SeamlessAuthorization",]
+   EXTRA_MIDDLEWARE_CLASSES: ["edx_oauth_client.middleware.seamless_authorization",]
    ```
    
    This feature requires to update you provider site's behaviour:
