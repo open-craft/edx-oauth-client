@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.template.defaultfilters import slugify
 from openedx.core.djangoapps.user_authn.views.registration_form import AccountCreationForm
 from social_core.pipeline import partial
-from student.helpers import do_create_account
+from common.djangoapps.student.helpers import do_create_account
 
 log = logging.getLogger(__name__)
 
