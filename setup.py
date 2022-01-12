@@ -7,7 +7,7 @@ with open('requirements.txt', 'r') as f:
 
 setup(
     name='edx-oauth-client',
-    version='2.0.1',
+    version='2.0.2',
     description='Client OAuth2 from edX installations',
     author='edX',
     url='https://github.com/raccoongang/edx_oauth_client',
