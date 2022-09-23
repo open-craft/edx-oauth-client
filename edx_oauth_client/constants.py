@@ -7,6 +7,7 @@ OAUTH_PROCESS_URLS = ("oauth2", "auth", "login_oauth_token", "social-logout")
 API_URLS = (
     "certificates",
     "api",
+    "v1",
     "user_api",
     "notifier_api",
     "update_example_certificate",
