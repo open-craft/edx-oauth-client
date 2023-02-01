@@ -24,7 +24,7 @@ except ImportError:
 
 def seamless_authorization(get_response: Callable[[HttpRequest], HttpResponse]):
     """A middleware for force authenticating users."""
-    backend = GenericOAuthBackend.name
+    backend = getattr(settings, 'SEAMLESS_AUTHORIZATION_BACKEND', GenericOAuthBackend.name)
 
     def ignore_url(request: HttpRequest) -> bool:
         """Determine whether the request should bypass the forced authentication."""
