@@ -80,17 +80,5 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
    ```
    EXTRA_MIDDLEWARE_CLASSES: ["edx_oauth_client.middleware.seamless_authorization",]
    ```
-   
-   This feature requires to update you provider site's behaviour:
-
-   Create multi-domain cookies named `authenticated=1` and `authenticated_user=<username>` if user is logged in. And delete these cookies on logout
-   
-   Also you should initiate user creation on edX after user creation on Provider. You need to send GET request to Edx API on url:
-   ```
-   https://<edx-url>/auth/complete/edx-oauth2/?state=<state>&code=<code>
-   ```
-   
-   Where `state` is md5(time()) and `code` is code for authorization (create it if doesn't exist)
- 
-**Note.** If you work on local devstack. Inside your edx’s vagrant in /etc/hosts add a row with your machine’s IP  and drupal’s vhost. For example:
-```192.168.0.197 sso.local```
+ - If you want to configure a backend (other than GenericOAuthBackend) used by the seamless authorization,
+   set its name as the `SEAMLESS_AUTHORIZATION_BACKEND` variable in your settings.
