@@ -3,7 +3,7 @@ Constants for the operation of the module.
 Keep immutable values here so as not to clog the namespace of OAuth backend and middleware layer.
 """
 
-OAUTH_PROCESS_URLS = ("oauth2", "auth", "login_oauth_token", "social-logout")
+OAUTH_PROCESS_URLS = ("oauth2", "auth", "login_oauth_token", "social-logout", "login_refresh")
 API_URLS = (
     "certificates",
     "api",
