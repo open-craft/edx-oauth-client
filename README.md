@@ -82,3 +82,5 @@ Redirect uri must be **http://<edx_url>/auth/complete/custom-oauth2/**
    ```
  - If you want to configure a backend (other than GenericOAuthBackend) used by the seamless authorization,
    set its name as the `SEAMLESS_AUTHORIZATION_BACKEND` variable in your settings.
+ - If you want to use the seamless authorization only when a specific cookie is passed with the request,
+   set its name as the `SEAMLESS_AUTHORIZATION_CHECK_COOKIE` variable in your settings.

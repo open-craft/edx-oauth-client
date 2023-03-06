@@ -34,6 +34,17 @@ def seamless_authorization(get_response: Callable[[HttpRequest], HttpResponse]):
             ignored_urls += LOCAL_URLS
         return start_url_path in ignored_urls
 
+    def has_cookie(request: HttpRequest) -> bool:
+        """
+        Check if a cookie with a name specified in the `SEAMLESS_AUTHORIZATION_CHECK_COOKIE` is present in the request.
+
+        Returns True if the cookie is present or the `SEAMLESS_AUTHORIZATION_CHECK_COOKIE` is not set.
+        """
+        if cookie_name := getattr(settings, 'SEAMLESS_AUTHORIZATION_CHECK_COOKIE', None):
+            return cookie_name in request.COOKIES
+
+        return True
+
     def prepare_redirection_query(request: HttpRequest) -> Dict[str, str]:
         """Prepare a redirection reference for the SSO."""
         query_dict = request.GET.copy()
@@ -55,7 +66,7 @@ def seamless_authorization(get_response: Callable[[HttpRequest], HttpResponse]):
 
         is_continue = continue_url in request.path
 
-        if not (ignore_url(request) or request.user.is_authenticated or is_continue):
+        if not (ignore_url(request) or request.user.is_authenticated or is_continue) and has_cookie(request):
             request.GET = prepare_redirection_query(request)
             logout(request)
             providers = [
