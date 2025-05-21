@@ -15,6 +15,7 @@ API_URLS = (
     "request_certificate",
     "heartbeat",
     "admin",
+    "assets",
 )
 
 LOCAL_URLS = (

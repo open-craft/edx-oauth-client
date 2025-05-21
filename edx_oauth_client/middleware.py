@@ -32,7 +32,7 @@ def seamless_authorization(get_response: Callable[[HttpRequest], HttpResponse]):
         ignored_urls = OAUTH_PROCESS_URLS + API_URLS
         if settings.DEBUG:
             ignored_urls += LOCAL_URLS
-        return start_url_path in ignored_urls
+        return start_url_path in ignored_urls or start_url_path.startswith("asset-v1:")
 
     def has_cookie(request: HttpRequest) -> bool:
         """
